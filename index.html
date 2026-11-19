@@ -735,7 +735,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .hero.sky-dragging { cursor:grabbing; }
 /* Pixel arrows at the sky's right edge, above the hills: look up, back to the first view, look down. */
 .sky-nav {
-  position:absolute; z-index:2; right:max(10px, calc((100% - 1180px) / 2 - 8px)); top:calc(var(--nav-h) + (100% - var(--nav-h) - 130px) * .55);
+  position:absolute; z-index:2; right:14px; top:calc(var(--nav-h) + (100% - var(--nav-h) - 130px) * .55);
   display:flex; flex-direction:column; align-items:center; gap:2px; cursor:auto;
 }
 .sky-nav-btn {
@@ -1689,10 +1689,10 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   // spans at most 180 degrees. SKY_TOP is the room the logo bar takes over the banner (set in paint):
   // the sky behind the logo shows more of the sky above instead of zooming in. viewAz is where the
   // view faces; dragging the banner sky turns it (see "Drag the sky round" below).
-  // viewAlt tilts the view up (the arrows by the sky, or a vertical mouse drag) from 38 degrees, where
+  // viewAlt tilts the view up (only the arrows by the sky do this) from 38 degrees, where
   // the horizon sits on the ridges, to near the zenith; the frame keeps its scale, so tilting up
   // slides the horizon down behind the hills.
-  const BASE_ALT = 38, TOP_TILT = 86;
+  const BASE_ALT = 38, TOP_TILT = 86, SKY_ZOOM = 380;
   let SKY_TOP = 0, viewAz = VIEW_AZ, viewAlt = BASE_ALT, projectorScale = 100;
   function projector(width, height) {
     const alt0 = viewAlt * toRad, az0 = viewAz * toRad, base = BASE_ALT * toRad;
@@ -1700,7 +1700,9 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const r = [Math.cos(az0), -Math.sin(az0), 0];
     const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
     const below = 2 * Math.tan(base / 2), above = 2 * Math.tan((TOP_ALT - BASE_ALT) * toRad / 2), horizonY = height - HORIZON_UP;
-    const scale = Math.max((horizonY - SKY_TOP) / (below + above), width / 4);
+    // Never less than SKY_ZOOM css pixels per radian: a narrow window shows less of the sky at the
+    // same size (cropped at the sides and top) instead of squeezing it all in.
+    const scale = Math.max((horizonY - SKY_TOP) / (below + above), width / 4, SKY_ZOOM / (sky.pixel || 3));
     projectorScale = scale;   // canvas pixels per radian near the middle of the view
     const cx = width * .5, cy = horizonY - below * scale;
     return v => {
@@ -1727,7 +1729,9 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const t = SUN_V.map((s, i) => s - dot * MOON_V[i]), tl = Math.hypot(...t) || 1;
     const near = MOON_V.map((m, i) => m + .02 * t[i] / tl), nl = Math.hypot(...near);
     const q = to(near.map(c => c / nl));
-    drawMoon(q ? Math.atan2(q.y - p.y, q.x - p.x) : 0);
+    // Redraw the disc only when its lit side turns by a visible amount (it barely does while dragging).
+    const toward = q ? Math.atan2(q.y - p.y, q.x - p.x) : 0;
+    if (!(Math.abs(toward - (sky.moonToward ?? 99)) < .02)) { drawMoon(toward); sky.moonToward = toward; }
     el.hidden = false;
     el.style.right = 'auto';
     el.style.left = Math.round(p.x * pixel - size / 2) + 'px';
@@ -1839,7 +1843,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     if (!figureLayers()) return;
     figure.label.textContent = fig.names.en;
     const ys = fig.pts.map(p => p[1]), mid = fig.pts.reduce((sum, p) => sum + p[0], 0) / fig.pts.length;
-    const width = sky.width * sky.pixel, nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 67;
+    const width = sky.width * sky.pixel, nav = SKY_TOP * sky.pixel || 67;   // the logo bar's height
     // Above the figure's top star, or under its lowest one when the top is up among the logo and links.
     const below = Math.min(...ys) * sky.pixel - 28 < nav;
     figure.label.classList.toggle('is-below', below);
@@ -2228,13 +2232,15 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   }
 
   // Drag the sky round: press on the banner sky (not a control) and drag sideways; the stars follow
-  // the pointer and the view turns, all the way round if you like. A press without a drag still
-  // sends up a wish lantern.
-  const skyDrag = {on: false, id: 0, x: 0, y: 0, az: 0, alt: 0, mouse: false, moved: false, frame: 0};
+  // the pointer and the view turns, all the way round if you like. Dragging only turns it; looking
+  // up and down is for the arrows. A press without a drag still sends up a wish lantern.
+  const skyDrag = {on: false, id: 0, x: 0, az: 0, moved: false, frame: 0};
+  // Lay the banner out for the new view and draw it in the same frame, so the stars, lines and Moon
+  // move together with the pointer (the twinkle loop alone only redraws 24 times a second).
   function turnHero() {
     skyDrag.frame = 0;
     const rect = hero && hero.getBoundingClientRect();
-    if (rect && rect.width && sky.width) layoutHero(rect.width, rect.height, sky.pixel);
+    if (rect && rect.width && sky.width) { layoutHero(rect.width, rect.height, sky.pixel); drawSky(performance.now()); }
     const nav = document.querySelector('.sky-nav');
     if (nav) {
       nav.querySelector('[data-sky="up"]').disabled = viewAlt >= TOP_TILT;
@@ -2247,22 +2253,19 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const busy = e => e.target.closest('a,button,input,select,textarea,label,summary,form,[role=group]');
     scene?.addEventListener('pointerdown', e => {
       if (e.button !== 0 || busy(e)) return;
-      Object.assign(skyDrag, {on: true, id: e.pointerId, x: e.clientX, y: e.clientY, az: viewAz, alt: viewAlt, mouse: e.pointerType === 'mouse', moved: false});
+      Object.assign(skyDrag, {on: true, id: e.pointerId, x: e.clientX, az: viewAz, moved: false});
     });
     scene?.addEventListener('pointermove', e => {
       if (!skyDrag.on || e.pointerId !== skyDrag.id) return;
-      const dx = e.clientX - skyDrag.x, dy = skyDrag.mouse ? e.clientY - skyDrag.y : 0;
+      const dx = e.clientX - skyDrag.x;
       if (!skyDrag.moved) {
-        if (Math.hypot(dx, dy) < 5) return;
+        if (Math.abs(dx) < 5) return;
         skyDrag.moved = true;
         scene.classList.add('sky-dragging');
         try { scene.setPointerCapture(e.pointerId); } catch (_) { /* already released */ }
       }
-      // One css pixel of drag is one pixel of sky near the middle of the view: sideways turns the
-      // view round, up and down (with a mouse; on a phone that scrolls) tilts it.
-      const perPx = 1 / (projectorScale * sky.pixel) / toRad;
-      viewAz = ((skyDrag.az - dx * perPx / Math.cos(viewAlt * toRad)) % 360 + 360) % 360;
-      tiltTo(skyDrag.alt + dy * perPx);
+      // One css pixel of drag is one pixel of sky near the middle of the view.
+      viewAz = ((skyDrag.az - dx / (projectorScale * sky.pixel) / toRad / Math.cos(viewAlt * toRad)) % 360 + 360) % 360;
       if (!skyDrag.frame) skyDrag.frame = requestAnimationFrame(turnHero);
     });
     const end = () => {
