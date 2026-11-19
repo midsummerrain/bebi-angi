@@ -1560,10 +1560,10 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     };
   }
 
-  // The hero shows the real sky over Ann Arbor (42.28 N, 83.74 W): right now while it is dark there,
-  // otherwise tonight at 22:00. Stars come from the Yale catalogue (star-catalog.js); the Moon is put
-  // at its real place, phase and tilt for that same moment, and the view turns to face it when it is
-  // up (south east, where the winter stars rise, when it is not).
+  // The hero shows the real sky over Ann Arbor (42.28 N, 83.74 W) right now, turning with the clock.
+  // Stars come from the Yale catalogue (star-catalog.js); the Moon is put at its real place, phase
+  // and tilt for the same moment, and the view first faces it when it is up (south east, where the
+  // winter stars rise, when it is not).
   const LAT = 42.2808, LON = -83.7430, toRad = Math.PI / 180;
   const jdOf = ms => ms / 86400000 + 2440587.5;
   const lstAt = ms => (((280.46061837 + 360.98564736629 * (jdOf(ms) - 2451545) + LON) % 360) + 360) % 360;
@@ -1587,24 +1587,24 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const H = (lstDeg - ra * 15) * toRad, de = dec * toRad, phi = LAT * toRad;
     return [-Math.cos(de) * Math.sin(H), Math.sin(de) * Math.cos(phi) - Math.cos(de) * Math.cos(H) * Math.sin(phi), Math.sin(de) * Math.sin(phi) + Math.cos(de) * Math.cos(H) * Math.cos(phi)];
   }
-  function pickSkyTime(now) {
-    // ?at=2026-11-19T22:00-05:00 previews the sky at another moment.
-    const at = Date.parse(new URLSearchParams(location.search).get('at') || '');
-    if (!Number.isNaN(at)) return at;
-    if (horizonAt(sunMoon(now).sun, lstAt(now))[2] < Math.sin(-6 * toRad)) return now;
-    const local = new Date(new Date(now).toLocaleString('en-US', {timeZone: 'America/Detroit'}));
-    const tonight = new Date(local);
-    tonight.setHours(22, 0, 0, 0);
-    return tonight.getTime() + (now - local.getTime());
-  }
-  const SKY_TIME = pickSkyTime(Date.now()), SKY = sunMoon(SKY_TIME), LST_SKY = lstAt(SKY_TIME);
-  const SUN_V = horizonAt(SKY.sun, LST_SKY);
-  // The Moon seen from the ground sits up to a degree lower than from the Earth's centre (parallax).
-  const MOON_V = (() => {
+  // The sky runs on the real clock, to the minute and on from there: the banner shows Ann Arbor's
+  // sky at this moment and keeps turning with it (by day there the night painting stays, with the
+  // stars where they really are behind the daylight). ?at=2026-11-19T22:00-05:00 starts the clock
+  // at another moment instead.
+  const AT = Date.parse(new URLSearchParams(location.search).get('at') || ''), CLOCK_START = Date.now();
+  const skyNow = () => Number.isNaN(AT) ? Date.now() : AT + (Date.now() - CLOCK_START);
+  let SKY_TIME, SKY, LST_SKY, SUN_V, MOON_V, MOON_ALT, MOON_AZ;
+  function setSkyClock(ms) {
+    SKY_TIME = ms; SKY = sunMoon(ms); LST_SKY = lstAt(ms);
+    SUN_V = horizonAt(SKY.sun, LST_SKY);
+    // The Moon seen from the ground sits up to a degree lower than from the Earth's centre (parallax).
     const v = horizonAt(SKY.moon, LST_SKY), alt = Math.asin(v[2]) - .95 * toRad * Math.cos(Math.asin(v[2])), az = Math.atan2(v[0], v[1]);
-    return [Math.sin(az) * Math.cos(alt), Math.cos(az) * Math.cos(alt), Math.sin(alt)];
-  })();
-  const MOON_ALT = Math.asin(MOON_V[2]) / toRad, MOON_AZ = (Math.atan2(MOON_V[0], MOON_V[1]) / toRad + 360) % 360;
+    MOON_V = [Math.sin(az) * Math.cos(alt), Math.cos(az) * Math.cos(alt), Math.sin(alt)];
+    MOON_ALT = Math.asin(MOON_V[2]) / toRad;
+    MOON_AZ = (Math.atan2(MOON_V[0], MOON_V[1]) / toRad + 360) % 360;
+  }
+  setSkyClock(skyNow());
+  // The view first faces the Moon when it is up, else south east, where the winter stars rise.
   const VIEW_AZ = MOON_ALT > 2 ? (MOON_AZ - 12 + 360) % 360 : 130;
   const R = '#ffb57f', K = '#ffd3a3', G = '#fff0c6', F = '#fff8ea', A = '#eef2ff', B = '#cfdfff';
   const STARS = {
@@ -1677,9 +1677,10 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     return [(((Math.atan2(A, B) + z) / toRad + 360) % 360) / 15, Math.asin(C) / toRad];
   }
   for (const star of Object.values(STARS)) [star[0], star[1]] = precess(star, SKY_TIME);
-  // Local horizon direction (east, north, up) of every star at SKY_TIME.
-  const lst = LST_SKY;
-  const HORIZON = Object.fromEntries(Object.entries(STARS).map(([id, star]) => [id, horizonAt(star, lst)]));
+  // Local horizon direction (east, north, up) of every star at SKY_TIME, refreshed as the clock runs.
+  const HORIZON = {};
+  const updateHorizon = () => { for (const [id, star] of Object.entries(STARS)) HORIZON[id] = horizonAt(star, LST_SKY); };
+  updateHorizon();
 
   // Horizon height in canvas pixels: the tops of the far pixel ridges (about 110 css px on a desktop,
   // 74 on a phone, which is 37 canvas pixels either way), so the hills hide only the last few degrees.
@@ -1725,9 +1726,11 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const t = SUN_V.map((s, i) => s - dot * MOON_V[i]), tl = Math.hypot(...t) || 1;
     const near = MOON_V.map((m, i) => m + .02 * t[i] / tl), nl = Math.hypot(...near);
     const q = to(near.map(c => c / nl));
-    // Redraw the disc only when its lit side turns by a visible amount (it barely does while dragging).
+    // Redraw the disc only when its lit side turns or its phase grows by a visible amount.
     const toward = q ? Math.atan2(q.y - p.y, q.x - p.x) : 0;
-    if (!(Math.abs(toward - (sky.moonToward ?? 99)) < .02)) { drawMoon(toward); sky.moonToward = toward; }
+    if (!(Math.abs(toward - (sky.moonToward ?? 99)) < .02 && Math.abs(SKY.lit - (sky.moonLit ?? 9)) < .005)) {
+      drawMoon(toward); sky.moonToward = toward; sky.moonLit = SKY.lit;
+    }
     el.hidden = false;
     el.style.right = 'auto';
     el.style.left = Math.round(p.x * pixel - size / 2) + 'px';
@@ -2307,6 +2310,17 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     });
     if (nav) turnHero();
   }
+  // The real clock: every 5 seconds the stars, the Moon's place and phase move on to the time now
+  // (the sky turns a quarter of a degree a minute, so a bright star steps one pixel every minute
+  // or two). Not while the tab is hidden; on coming back it catches up at once.
+  const tick = () => {
+    if (document.hidden) return;
+    setSkyClock(skyNow());
+    updateHorizon();
+    turnHero();
+  };
+  setInterval(tick, 5000);
+  document.addEventListener('visibilitychange', tick);
 
   function paint(canvas, isHero) {
     const rect = canvas.getBoundingClientRect();
@@ -2354,7 +2368,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   // ---------------------------------------------------------------- page background: the north
   // Turn round from the banner: the real northern sky over Ann Arbor with Polaris in the middle, the
   // Big Dipper, Cassiopeia, Cepheus, Draco and Perseus round it. It wheels the real way (anticlockwise
-  // round Polaris): slowly by itself, and on from midnight towards dawn (about 6.5 hours) as the page
+  // round Polaris): with the real clock, and on towards dawn (about 6.5 hours more) as the page
   // scrolls down, with the first violet of dawn low in the east at the very end. Now and then a
   // Leonid meteor shoots out of Leo, low in the north east (the shower peaked on 17 November).
   const north = {width: 0, height: 0, pixel: 3, meteors: [], dust: [], nextMeteor: 0, start: performance.now()};
@@ -2406,7 +2420,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     polaris: id === POLARIS, speed: .0014 + (i * .618034 % 1) * .004, phase: i * 2.399
   }));
   const LEONIDS = {ra: 10.25 * 15 * toRad, sd: Math.sin(22 * toRad), cd: Math.cos(22 * toRad)};
-  const LST0 = lst;
+  // The page sky turns with the real clock (sidereal time now), plus the scroll.
   function northView(lstDeg) {
     const W = north.width, H = north.height, phi = LAT * toRad, sp = Math.sin(phi), cp = Math.cos(phi);
     const f = [0, cp, sp], u = [0, -sp, cp];
@@ -2831,8 +2845,8 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const ctx = canvas && canvas.getContext('2d');
     if (!ctx || !north.width) return;
     const W = canvas.width, H = canvas.height, progress = scrollFraction();
-    const turn = calm ? 0 : progress * 100 + (t - north.start) / 1000 * .12;
-    const view = northView(LST0 + turn);
+    const turn = calm ? 0 : progress * 100;
+    const view = northView(lstAt(skyNow()) + turn);
     const veil = 1;
     ctx.clearRect(0, 0, W, H);
     // Dawn creeping up in the east (to the right when facing north) near the end of the page.
