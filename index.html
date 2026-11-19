@@ -325,7 +325,8 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 /* Closing picnic: one seamless pixel strip at 2x, edge to edge across the page and centred so the
    blanket sits mid-page; the bánh bao balloon lands on it in the right margin. */
 .picnic-scene {
-  height:128px; margin-top:12px; background:url("assets/pixel/scene-picnic.png") center bottom / 1280px 128px repeat-x;
+  height:128px; margin-top:12px; background:var(--fest-picnic,none),var(--snow-picnic,none),url("assets/pixel/scene-picnic.png") center bottom / 1280px 128px repeat-x;
+  background-position:center bottom; background-size:1280px 128px; background-repeat:repeat-x;
   image-rendering:pixelated; image-rendering:crisp-edges;
 }
 .empty-snacks { display:flex; justify-content:center; gap:12px; margin-bottom:12px; }
@@ -509,6 +510,35 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   #filterPanel > .filter-inner { grid-column:1/-1; grid-row:2; }
   #filterPanel:not([open]) > .filter-inner { display:none; }
 }
+/* Night market on the picnic meadow: six pixel stalls (drawn by a script, inline SVG at 2x),
+   three each side of the blanket; on narrow screens one row in front of the hills. Each stall
+   searches for its dish (app.js). */
+.picnic-scene { position:relative; }
+.night-market { position:absolute; left:0; right:0; bottom:30px; display:flex; justify-content:center; align-items:flex-end; pointer-events:none; }
+.market-side { display:flex; gap:14px; }
+.market-gap { flex:0 0 470px; }
+.stall { pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:2px; width:48px; padding:0; border:0; background:none; color:var(--ink); cursor:pointer; }
+.stall svg { display:block; width:48px; height:56px; shape-rendering:crispEdges; transition:translate .15s steps(2); }
+.stall-name { font-size:var(--fs-xs); font-weight:600; line-height:1.1; white-space:nowrap; text-shadow:0 1px 2px #000, 0 0 4px #000; }
+.stall:is(:hover,:focus-visible) svg { translate:0 -3px; filter:drop-shadow(0 0 6px #ffd27aa6); }
+.stall:focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:4px; }
+@media (max-width:880px) {
+  .market-gap { display:none; }
+  .night-market { gap:8px; bottom:46px; }
+  .market-side { gap:8px; }
+  .stall, .stall svg { width:42px; }
+  .stall svg { height:49px; }
+}
+@media (max-width:380px) { .night-market, .market-side { gap:4px; } .stall, .stall svg { width:38px; } .stall svg { height:44px; } }
+@media print { .night-market { display:none; } }
+
+/* Weather emoji beside VI and EN: turns the banner's weather effects off or on (galaxy-sky.js). */
+.weather-toggle { min-width:44px; min-height:44px; padding:0; border:0; background:transparent; font-size:20px; line-height:1; cursor:pointer; position:relative; font-family:'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif; }
+.weather-toggle[aria-pressed=false] { filter:grayscale(1); opacity:.5; }
+.weather-toggle[aria-pressed=false]::after { content:''; position:absolute; left:10px; right:10px; top:50%; height:2px; background:var(--ink); rotate:-35deg; border-radius:1px; }
+@media (hover:hover) { .weather-toggle:hover { transform:translateY(-1px); } }
+@media (max-width:430px) { .weather-toggle { min-width:34px; font-size:18px; } .fav-mode { white-space:nowrap; } }
+@media (max-width:880px) { .stall-name { max-width:100%; white-space:normal; text-align:center; font-size:11px; } }
 </style>
   <style>body { isolation:isolate; background-color:#05070f; }
 .galaxy-bed { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background:#05070f; }
@@ -720,9 +750,29 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   position:absolute; left:0; right:0; bottom:0; background-repeat:repeat-x; background-position:right bottom;
   image-rendering:pixelated; image-rendering:crisp-edges;
 }
-.scene-far { height:calc(76 * var(--px)); background-image:url("assets/pixel/scene-far.png"); background-size:calc(640 * var(--px)) 100%; translate:0 calc(var(--parallax,0) * .12px); }
-.scene-mid { height:calc(54 * var(--px)); background-image:url("assets/pixel/scene-mid.png"); background-size:calc(640 * var(--px)) 100%; translate:0 calc(var(--parallax,0) * .06px); }
-.scene-near { height:calc(42 * var(--px)); background-image:url("assets/pixel/scene-near.png"); background-size:calc(640 * var(--px)) 100%; }
+.scene-far { height:calc(76 * var(--px)); background-image:var(--snow-far),url("assets/pixel/scene-far.png"); background-size:calc(640 * var(--px)) 100%; translate:0 calc(var(--parallax,0) * .12px); }
+.scene-mid { height:calc(54 * var(--px)); background-image:var(--snow-mid),url("assets/pixel/scene-mid.png"); background-size:calc(640 * var(--px)) 100%; translate:0 calc(var(--parallax,0) * .06px); }
+.scene-near { height:calc(42 * var(--px)); background-image:var(--snow-near),url("assets/pixel/scene-near.png"); background-size:calc(640 * var(--px)) 100%; }
+/* Festive seasons (galaxy-sky.js sets data-season and data-snow on <html>). Each overlay is drawn
+   by tools/pixel_scene.py on the same tile as its layer, so it lines up pixel for pixel: snow on
+   every exposed surface, Christmas lights on the castle and the hamlet (they cycle colour), red
+   lanterns and hoa mai for Tet, pumpkins for Halloween. */
+:root { --snow-far:none; --snow-mid:none; --snow-near:none; --snow-picnic:none; --fest-far:none; --fest-mid:none; --fest-near:none; --fest-picnic:none; }
+:root[data-snow] {
+  --snow-far:url("assets/pixel/season-far-snow.png"); --snow-mid:url("assets/pixel/season-mid-snow.png");
+  --snow-near:url("assets/pixel/season-near-snow.png"); --snow-picnic:url("assets/pixel/season-picnic-snow.png");
+}
+:root[data-season=xmas] { --fest-far:url("assets/pixel/season-far-xmas.png"); --fest-mid:url("assets/pixel/season-mid-xmas.png"); }
+:root[data-season=tet] { --fest-near:url("assets/pixel/season-near-tet.png"); --fest-picnic:url("assets/pixel/season-picnic-tet.png"); }
+:root[data-season=halloween] { --fest-near:url("assets/pixel/season-near-halloween.png"); --fest-picnic:url("assets/pixel/season-picnic-halloween.png"); }
+.scene-layer.scene-deco.scene-far { background-image:var(--fest-far); }
+.scene-layer.scene-deco.scene-mid { background-image:var(--fest-mid); }
+.scene-layer.scene-deco.scene-near { background-image:var(--fest-near); }
+@media (prefers-reduced-motion:no-preference) {
+  :root[data-season=xmas] .scene-deco { animation:xmas-lights 2.8s steps(1) infinite; }
+  :root[data-season=xmas] .scene-deco.scene-mid { animation-delay:-1.4s; }
+}
+@keyframes xmas-lights { 0% { filter:none; } 25% { filter:hue-rotate(110deg); } 50% { filter:hue-rotate(220deg) brightness(1.2); } 75% { filter:hue-rotate(300deg); } }
 @media (max-width:640px) { .night-scene { --px:2px; } }
 .fireflies { position:absolute; inset:auto 0 0 0; height:44%; }
 .fireflies i { position:absolute; width:4px; height:4px; border-radius:50%; background:#fff1a8; box-shadow:0 0 6px 2px #ffd56e9e; opacity:.85; }
@@ -775,6 +825,15 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 @media print, (forced-colors:active) {
   .galaxy-bed, .galaxy-hero, .star-twinkle, .sky-stars, .night-scene, .bao-balloon, .card::after, .filter-inner::after { display:none; }
 }
+
+/* Wish lanterns, sparks and fireflies over the banner (galaxy-sky.js): above the hills, under the text. */
+.wish-sky { position:absolute; inset:0; z-index:0; width:100%; height:100%; pointer-events:none; image-rendering:pixelated; }
+@media print, (forced-colors:active) { .wish-sky { display:none; } }
+
+/* The stream's glints: two frames drawn by tools/pixel_scene.py, swapped so the water shimmers. */
+.scene-layer.scene-water.scene-near { background-image:url("assets/pixel/scene-near-water-a.png"); }
+@media (prefers-reduced-motion:no-preference) { .scene-layer.scene-water { animation:water-shimmer 1.4s steps(1) infinite; } }
+@keyframes water-shimmer { 0% { background-image:url("assets/pixel/scene-near-water-a.png"); } 50% { background-image:url("assets/pixel/scene-near-water-b.png"); } }
 </style>
   <style>.cards {
   display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px;
@@ -1147,6 +1206,35 @@ dialog::backdrop { background: #0b0912cc; }
 /* Cards lift off the sky: a lighter indigo surface, a visible frame and a soft drop. */
 .card { box-shadow:0 10px 28px #03061a8c; }
 @media (hover:hover) { .card:hover { border-color:var(--edge); } }
+/* Open places hang a pixel lantern from the card's top edge (it gutters in the last 45 minutes
+   before closing); closed places get a sleeping moon with drifting z's. Drawn on a 9 px grid at 2x. */
+.card-lamp { position:absolute; top:0; right:18px; z-index:3; width:18px; height:28px; pointer-events:none; transform-origin:50% 0; }
+.card-lamp[data-lamp=closed] { width:22px; }
+.card-lamp svg { display:block; width:100%; height:100%; shape-rendering:crispEdges; overflow:visible; }
+.card-lamp:not([data-lamp=closed]) svg { filter:drop-shadow(0 0 5px #ffb347b3); }
+@media (prefers-reduced-motion:no-preference) {
+  .card-lamp:not([data-lamp=closed]) { animation:lamp-sway 3.2s ease-in-out infinite alternate; }
+  .card-lamp[data-lamp=closing] .lamp-light { animation:lamp-gutter 1.7s steps(1) infinite; }
+  .card-lamp .zz { animation:zz-float 3s steps(6) infinite; }
+  .card-lamp .zz2 { animation-delay:-1.5s; }
+}
+@keyframes lamp-sway { from { rotate:-5deg; } to { rotate:5deg; } }
+@keyframes lamp-gutter { 0%,100% { opacity:1; } 20% { opacity:.3; } 28% { opacity:1; } 55% { opacity:.5; } 62% { opacity:1; } }
+@keyframes zz-float { 0% { transform:translate(0,0); opacity:0; } 20% { opacity:1; } 100% { transform:translate(2px,-4px); opacity:0; } }
+@media print { .card-lamp { display:none; } }
+
+/* The bebi chef sitting on the card in view (bebi-buddy.js): a 13 x 16 pixel sprite at 2x or 3x. */
+.results { position:relative; }
+.bebi-buddy { position:absolute; left:0; top:0; z-index:4; padding:0; border:0; background:none; cursor:pointer; line-height:0; }
+.bebi-buddy canvas { display:block; image-rendering:pixelated; filter:drop-shadow(0 2px 2px #000a); }
+.bebi-buddy:focus-visible { outline:2px solid var(--focus); outline-offset:3px; border-radius:6px; }
+@media (prefers-reduced-motion:no-preference) {
+  .bebi-buddy { transition:transform .45s steps(6); }
+  .bebi-buddy.hop canvas { animation:buddy-hop .45s steps(5); }
+  .bebi-buddy:hover canvas { translate:0 -2px; }
+}
+@keyframes buddy-hop { 0%,100% { translate:0 0; } 45% { translate:0 -14px; } }
+@media print { .bebi-buddy { display:none; } }
 </style>
   <style>#originPicker { align-self: start; }
 .origin-preset-row, .origin-actions { display: flex; align-items: center; gap: 0 12px; flex-wrap: wrap; }
@@ -1205,6 +1293,7 @@ dialog::backdrop { background: #0b0912cc; }
       <a class="brand" href="#heroTitle"><img class="chef-mark" src="assets/bebi-chef.png" alt="" width="42" height="42"><span>bebi</span></a>
       <div class="nav-right">
         <button type="button" class="nav-link fav-mode" id="savedButton" aria-pressed="false" data-i18n="saved">Đã lưu</button>
+        <button type="button" class="weather-toggle" id="weatherToggle" aria-pressed="true" aria-label="Tắt hiệu ứng thời tiết" title="Tắt hiệu ứng thời tiết">🌙</button>
         <div class="lang" role="group" aria-labelledby="languageLabel">
           <span id="languageLabel" class="sr-only"><span lang="vi">Ngôn ngữ</span><span lang="en">Language</span></span>
           <button type="button" id="viButton" lang="vi" aria-label="Tiếng Việt" aria-pressed="true">VI</button>
@@ -1228,16 +1317,23 @@ dialog::backdrop { background: #0b0912cc; }
         <canvas class="weather-clouds-high"></canvas>
         <canvas class="weather-clouds"></canvas>
         <!-- One pixel painting in three layers (drawn by tools/pixel_scene.py): far ridges with a
-             bell tower, a hamlet in the woods, and the meadow with the bao cart under string lights. -->
+             castle, a hamlet and a windmill in the woods, and the meadow with a Van Gogh stream, its
+             footbridge, a cypress and the bao cart under string lights. -->
         <div class="scene-layer scene-far"></div>
+        <div class="scene-layer scene-far scene-deco"></div>
         <div class="weather-fog fog-far"></div>
         <div class="scene-layer scene-mid"></div>
+        <div class="scene-layer scene-mid scene-deco"></div>
         <div class="weather-fog fog-near"></div>
         <div class="fireflies"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <div class="scene-layer scene-near"></div>
+        <div class="scene-layer scene-near scene-water"></div>
+        <div class="scene-layer scene-near scene-deco"></div>
         <canvas class="weather-precip"></canvas>
         <div class="weather-flash"></div>
       </div>
+      <!-- Wishes: click the sky to send up a lantern; fireflies follow the pointer over the meadow (galaxy-sky.js). -->
+      <canvas class="wish-sky" aria-hidden="true"></canvas>
       <div class="sky-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><span class="shooting-star"></span></div>
       <div class="wrap hero-grid">
         <div class="hero-copy">
@@ -1408,7 +1504,8 @@ dialog::backdrop { background: #0b0912cc; }
     <!-- Closing picnic in the same meadow (tools/pixel_scene.py), edge to edge so the bánh bao balloon
          can land on it from the side margin. The snack sprites below are Kenney Pixel Platformer
          Food Expansion (CC0); the page reuses them for empty states and photo placeholders. -->
-    <div class="picnic-scene" aria-hidden="true"></div>
+    <!-- Night market on the meadow: each stall searches for its dish (app.js). -->
+    <div class="picnic-scene"><div class="night-market" role="group" aria-label="Chợ đêm"><div class="market-side"><button type="button" class="stall" data-market="phở"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#1d1420" d="M8 8h1v1h-1zM8 9h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 8h1v1h-1zM9 9h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 8h1v1h-1zM10 9h1v1h-1zM10 15h1v1h-1zM11 8h1v1h-1zM11 9h1v1h-1zM11 15h1v1h-1zM12 8h1v1h-1zM12 15h1v1h-1zM13 9h1v1h-1zM13 15h1v1h-1zM14 8h1v1h-1zM14 9h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 12h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#fff1c8" d="M8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM11 10h1v1h-1zM12 10h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1zM15 10h1v1h-1z"/><path fill="#ffffff" d="M8 11h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM15 11h1v1h-1z"/><path fill="#4f86f7" d="M9 11h1v1h-1zM9 12h1v1h-1zM9 13h1v1h-1zM10 11h1v1h-1zM10 13h1v1h-1zM10 14h1v1h-1zM11 11h1v1h-1zM11 12h1v1h-1zM11 13h1v1h-1zM11 14h1v1h-1zM12 11h1v1h-1zM12 13h1v1h-1zM12 14h1v1h-1zM13 11h1v1h-1zM13 12h1v1h-1zM13 13h1v1h-1zM13 14h1v1h-1zM14 11h1v1h-1zM14 12h1v1h-1zM14 13h1v1h-1z"/><path fill="#c99a5b" d="M12 9h1v1h-1zM13 8h1v1h-1z"/><path fill="#d8433b" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Phở</span><span lang="en">Pho</span></span></button><button type="button" class="stall" data-market="sushi"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#1d1420" d="M8 8h1v1h-1zM8 9h1v1h-1zM8 10h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 8h1v1h-1zM9 9h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 8h1v1h-1zM10 9h1v1h-1zM10 14h1v1h-1zM10 15h1v1h-1zM11 8h1v1h-1zM11 9h1v1h-1zM11 14h1v1h-1zM11 15h1v1h-1zM12 8h1v1h-1zM12 9h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM13 8h1v1h-1zM13 9h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM14 8h1v1h-1zM14 9h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 10h1v1h-1zM15 12h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#ff8a5a" d="M8 11h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM10 11h1v1h-1zM11 10h1v1h-1zM12 10h1v1h-1zM12 11h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1z"/><path fill="#ffd0b0" d="M9 11h1v1h-1zM11 11h1v1h-1zM13 11h1v1h-1z"/><path fill="#ffffff" d="M9 12h1v1h-1zM9 13h1v1h-1zM10 12h1v1h-1zM10 13h1v1h-1zM11 12h1v1h-1zM11 13h1v1h-1zM12 12h1v1h-1zM12 13h1v1h-1zM13 12h1v1h-1zM13 13h1v1h-1zM14 12h1v1h-1zM14 13h1v1h-1z"/><path fill="#3f7fd8" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Sushi</span><span lang="en">Sushi</span></span></button><button type="button" class="stall" data-market="pizza"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#c47a3a" d="M8 8h1v1h-1zM9 8h1v1h-1zM10 8h1v1h-1zM11 8h1v1h-1zM12 8h1v1h-1zM13 8h1v1h-1zM14 8h1v1h-1zM15 8h1v1h-1z"/><path fill="#1d1420" d="M8 9h1v1h-1zM8 10h1v1h-1zM8 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 11h1v1h-1zM9 12h1v1h-1zM9 13h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 13h1v1h-1zM10 14h1v1h-1zM10 15h1v1h-1zM11 15h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM13 13h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM14 11h1v1h-1zM14 12h1v1h-1zM14 13h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 9h1v1h-1zM15 10h1v1h-1zM15 11h1v1h-1zM15 12h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#ffd56e" d="M9 9h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM10 11h1v1h-1zM10 12h1v1h-1zM11 9h1v1h-1zM11 10h1v1h-1zM11 12h1v1h-1zM11 13h1v1h-1zM11 14h1v1h-1zM12 9h1v1h-1zM12 10h1v1h-1zM12 11h1v1h-1zM12 12h1v1h-1zM12 13h1v1h-1zM13 10h1v1h-1zM13 11h1v1h-1zM13 12h1v1h-1zM14 9h1v1h-1zM14 10h1v1h-1z"/><path fill="#e0453a" d="M10 9h1v1h-1zM11 11h1v1h-1zM13 9h1v1h-1z"/><path fill="#3fa860" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Pizza</span><span lang="en">Pizza</span></span></button></div><div class="market-gap"></div><div class="market-side"><button type="button" class="stall" data-market="burger"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#1d1420" d="M8 8h1v1h-1zM8 9h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 8h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 8h1v1h-1zM10 14h1v1h-1zM10 15h1v1h-1zM11 8h1v1h-1zM11 14h1v1h-1zM11 15h1v1h-1zM12 8h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM13 8h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM14 8h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#f2a65a" d="M8 10h1v1h-1zM9 9h1v1h-1zM9 10h1v1h-1zM9 13h1v1h-1zM10 9h1v1h-1zM10 13h1v1h-1zM11 9h1v1h-1zM11 10h1v1h-1zM11 13h1v1h-1zM12 9h1v1h-1zM12 10h1v1h-1zM12 13h1v1h-1zM13 9h1v1h-1zM13 13h1v1h-1zM14 9h1v1h-1zM14 10h1v1h-1zM14 13h1v1h-1zM15 10h1v1h-1z"/><path fill="#6cc070" d="M8 11h1v1h-1zM9 11h1v1h-1zM10 11h1v1h-1zM11 11h1v1h-1zM12 11h1v1h-1zM13 11h1v1h-1zM14 11h1v1h-1zM15 11h1v1h-1z"/><path fill="#8a4b33" d="M8 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM11 12h1v1h-1zM12 12h1v1h-1zM13 12h1v1h-1zM14 12h1v1h-1zM15 12h1v1h-1z"/><path fill="#fff2df" d="M10 10h1v1h-1zM13 10h1v1h-1z"/><path fill="#e0a030" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Burger</span><span lang="en">Burger</span></span></button><button type="button" class="stall" data-market="trà sữa"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#1d1420" d="M8 8h1v1h-1zM8 9h1v1h-1zM8 10h1v1h-1zM8 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 8h1v1h-1zM9 9h1v1h-1zM9 10h1v1h-1zM9 11h1v1h-1zM9 12h1v1h-1zM9 13h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 8h1v1h-1zM10 14h1v1h-1zM10 15h1v1h-1zM11 8h1v1h-1zM11 15h1v1h-1zM12 8h1v1h-1zM12 15h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM14 8h1v1h-1zM14 10h1v1h-1zM14 11h1v1h-1zM14 12h1v1h-1zM14 13h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 10h1v1h-1zM15 11h1v1h-1zM15 12h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#ffffff" d="M10 9h1v1h-1zM11 9h1v1h-1zM13 9h1v1h-1zM14 9h1v1h-1z"/><path fill="#e8c9a0" d="M10 10h1v1h-1zM10 11h1v1h-1zM10 12h1v1h-1zM11 10h1v1h-1zM11 11h1v1h-1zM11 13h1v1h-1zM11 14h1v1h-1zM12 10h1v1h-1zM12 11h1v1h-1zM12 12h1v1h-1zM12 13h1v1h-1zM12 14h1v1h-1zM13 10h1v1h-1zM13 11h1v1h-1z"/><path fill="#4a2a2a" d="M10 13h1v1h-1zM11 12h1v1h-1zM13 12h1v1h-1zM13 13h1v1h-1z"/><path fill="#ff8fb0" d="M12 9h1v1h-1zM13 8h1v1h-1z"/><path fill="#9a6ad8" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Trà sữa</span><span lang="en">Milk tea</span></span></button><button type="button" class="stall" data-market="ice cream"><svg viewBox="0 0 24 28" aria-hidden="true" focusable="false"><path fill="#3b2630" d="M3 6h1v1h-1zM3 7h1v1h-1zM3 8h1v1h-1zM3 9h1v1h-1zM3 10h1v1h-1zM3 11h1v1h-1zM3 12h1v1h-1zM3 13h1v1h-1zM3 14h1v1h-1zM3 15h1v1h-1zM3 16h1v1h-1zM3 17h1v1h-1zM4 10h1v1h-1zM4 11h1v1h-1zM4 12h1v1h-1zM4 13h1v1h-1zM4 14h1v1h-1zM4 15h1v1h-1zM4 16h1v1h-1zM4 17h1v1h-1zM5 6h1v1h-1zM5 10h1v1h-1zM5 11h1v1h-1zM5 12h1v1h-1zM5 13h1v1h-1zM5 14h1v1h-1zM5 15h1v1h-1zM5 16h1v1h-1zM5 17h1v1h-1zM6 6h1v1h-1zM6 7h1v1h-1zM6 8h1v1h-1zM6 9h1v1h-1zM6 10h1v1h-1zM6 11h1v1h-1zM6 12h1v1h-1zM6 13h1v1h-1zM6 14h1v1h-1zM6 15h1v1h-1zM6 16h1v1h-1zM6 17h1v1h-1zM7 6h1v1h-1zM7 17h1v1h-1zM8 6h1v1h-1zM8 17h1v1h-1zM9 6h1v1h-1zM9 17h1v1h-1zM10 6h1v1h-1zM10 17h1v1h-1zM11 6h1v1h-1zM11 17h1v1h-1zM12 6h1v1h-1zM12 17h1v1h-1zM13 6h1v1h-1zM13 17h1v1h-1zM14 6h1v1h-1zM14 17h1v1h-1zM15 6h1v1h-1zM15 17h1v1h-1zM16 6h1v1h-1zM16 17h1v1h-1zM17 6h1v1h-1zM17 7h1v1h-1zM17 8h1v1h-1zM17 9h1v1h-1zM17 10h1v1h-1zM17 11h1v1h-1zM17 12h1v1h-1zM17 13h1v1h-1zM17 14h1v1h-1zM17 15h1v1h-1zM17 16h1v1h-1zM17 17h1v1h-1zM18 6h1v1h-1zM18 7h1v1h-1zM18 8h1v1h-1zM18 9h1v1h-1zM18 10h1v1h-1zM18 11h1v1h-1zM18 12h1v1h-1zM18 13h1v1h-1zM18 14h1v1h-1zM18 15h1v1h-1zM18 16h1v1h-1zM18 17h1v1h-1zM19 6h1v1h-1zM19 7h1v1h-1zM19 8h1v1h-1zM19 9h1v1h-1zM19 10h1v1h-1zM19 11h1v1h-1zM19 12h1v1h-1zM19 13h1v1h-1zM19 14h1v1h-1zM19 15h1v1h-1zM19 16h1v1h-1zM19 17h1v1h-1zM20 6h1v1h-1zM20 7h1v1h-1zM20 8h1v1h-1zM20 9h1v1h-1zM20 10h1v1h-1zM20 11h1v1h-1zM20 12h1v1h-1zM20 13h1v1h-1zM20 14h1v1h-1zM20 15h1v1h-1zM20 16h1v1h-1zM20 17h1v1h-1z"/><path fill="#8a7a68" d="M4 6h1v1h-1z"/><path fill="#f29a2e" d="M4 7h1v1h-1zM4 9h1v1h-1zM5 7h1v1h-1zM5 8h1v1h-1zM5 9h1v1h-1z"/><path fill="#ffc94d" d="M4 8h1v1h-1z"/><path fill="#2a1d26" d="M7 7h1v1h-1zM7 8h1v1h-1zM7 9h1v1h-1zM7 10h1v1h-1zM7 11h1v1h-1zM7 12h1v1h-1zM7 13h1v1h-1zM7 14h1v1h-1zM7 15h1v1h-1zM7 16h1v1h-1zM8 7h1v1h-1zM8 16h1v1h-1zM9 7h1v1h-1zM9 16h1v1h-1zM10 7h1v1h-1zM10 16h1v1h-1zM11 7h1v1h-1zM11 16h1v1h-1zM12 7h1v1h-1zM12 16h1v1h-1zM13 7h1v1h-1zM13 16h1v1h-1zM14 7h1v1h-1zM14 16h1v1h-1zM15 7h1v1h-1zM15 16h1v1h-1zM16 7h1v1h-1zM16 8h1v1h-1zM16 9h1v1h-1zM16 10h1v1h-1zM16 11h1v1h-1zM16 12h1v1h-1zM16 13h1v1h-1zM16 14h1v1h-1zM16 15h1v1h-1zM16 16h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM7 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM15 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM18 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM21 0h1v1h-1z"/><path fill="#1d1420" d="M8 8h1v1h-1zM8 9h1v1h-1zM8 10h1v1h-1zM8 11h1v1h-1zM8 12h1v1h-1zM8 13h1v1h-1zM8 14h1v1h-1zM8 15h1v1h-1zM9 8h1v1h-1zM9 9h1v1h-1zM9 11h1v1h-1zM9 12h1v1h-1zM9 13h1v1h-1zM9 14h1v1h-1zM9 15h1v1h-1zM10 8h1v1h-1zM10 13h1v1h-1zM10 14h1v1h-1zM10 15h1v1h-1zM11 15h1v1h-1zM12 14h1v1h-1zM12 15h1v1h-1zM13 8h1v1h-1zM13 13h1v1h-1zM13 14h1v1h-1zM13 15h1v1h-1zM14 8h1v1h-1zM14 9h1v1h-1zM14 11h1v1h-1zM14 12h1v1h-1zM14 13h1v1h-1zM14 14h1v1h-1zM14 15h1v1h-1zM15 8h1v1h-1zM15 9h1v1h-1zM15 10h1v1h-1zM15 11h1v1h-1zM15 12h1v1h-1zM15 13h1v1h-1zM15 14h1v1h-1zM15 15h1v1h-1z"/><path fill="#ff9ac4" d="M9 10h1v1h-1zM10 9h1v1h-1zM11 8h1v1h-1zM11 9h1v1h-1zM11 10h1v1h-1zM12 8h1v1h-1zM12 9h1v1h-1zM12 10h1v1h-1zM13 9h1v1h-1zM13 10h1v1h-1zM14 10h1v1h-1z"/><path fill="#ffffff" d="M10 10h1v1h-1z"/><path fill="#d9a05a" d="M10 11h1v1h-1zM10 12h1v1h-1zM11 11h1v1h-1zM11 12h1v1h-1zM11 13h1v1h-1zM11 14h1v1h-1zM12 11h1v1h-1zM12 12h1v1h-1zM12 13h1v1h-1zM13 11h1v1h-1zM13 12h1v1h-1z"/><path fill="#e86aa4" d="M1 1h1v1h-1zM2 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM13 1h1v1h-1zM14 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM20 1h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM18 2h1v1h-1zM19 2h1v1h-1zM20 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1zM13 3h1v1h-1zM14 3h1v1h-1zM18 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM12 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM18 4h1v1h-1zM19 4h1v1h-1zM20 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM12 5h1v1h-1zM13 5h1v1h-1zM18 5h1v1h-1zM19 5h1v1h-1z"/><path fill="#fff3e2" d="M3 1h1v1h-1zM4 1h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM10 1h1v1h-1zM11 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM17 1h1v1h-1zM21 1h1v1h-1zM22 1h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM10 2h1v1h-1zM11 2h1v1h-1zM15 2h1v1h-1zM16 2h1v1h-1zM17 2h1v1h-1zM21 2h1v1h-1zM22 2h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM15 3h1v1h-1zM16 3h1v1h-1zM17 3h1v1h-1zM21 3h1v1h-1zM22 3h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM11 4h1v1h-1zM15 4h1v1h-1zM16 4h1v1h-1zM17 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM9 5h1v1h-1zM10 5h1v1h-1zM15 5h1v1h-1zM16 5h1v1h-1zM22 5h1v1h-1z"/><path fill="#7c4c45" d="M21 5h1v1h-1zM21 6h1v1h-1zM21 7h1v1h-1zM21 8h1v1h-1zM21 9h1v1h-1zM21 10h1v1h-1zM21 11h1v1h-1zM21 12h1v1h-1zM21 13h1v1h-1zM21 14h1v1h-1zM21 15h1v1h-1zM21 16h1v1h-1zM21 17h1v1h-1zM2 19h1v1h-1zM21 19h1v1h-1zM2 20h1v1h-1zM21 20h1v1h-1zM2 21h1v1h-1zM21 21h1v1h-1zM2 22h1v1h-1zM21 22h1v1h-1zM2 23h1v1h-1zM21 23h1v1h-1zM2 24h1v1h-1zM21 24h1v1h-1zM2 25h1v1h-1zM21 25h1v1h-1zM2 26h1v1h-1zM21 26h1v1h-1zM1 19h1v1h-1zM1 20h1v1h-1zM1 21h1v1h-1zM1 22h1v1h-1zM1 23h1v1h-1zM1 24h1v1h-1zM1 25h1v1h-1zM1 26h1v1h-1zM3 19h1v1h-1zM3 20h1v1h-1zM3 21h1v1h-1zM3 22h1v1h-1zM3 23h1v1h-1zM3 24h1v1h-1zM3 25h1v1h-1zM3 26h1v1h-1zM4 19h1v1h-1zM4 20h1v1h-1zM4 21h1v1h-1zM4 22h1v1h-1zM4 23h1v1h-1zM4 24h1v1h-1zM4 25h1v1h-1zM4 26h1v1h-1zM6 19h1v1h-1zM6 20h1v1h-1zM6 21h1v1h-1zM6 22h1v1h-1zM6 23h1v1h-1zM6 24h1v1h-1zM6 25h1v1h-1zM6 26h1v1h-1zM7 19h1v1h-1zM7 20h1v1h-1zM7 21h1v1h-1zM7 22h1v1h-1zM7 23h1v1h-1zM7 24h1v1h-1zM7 25h1v1h-1zM7 26h1v1h-1zM8 19h1v1h-1zM8 20h1v1h-1zM8 21h1v1h-1zM8 22h1v1h-1zM8 23h1v1h-1zM8 24h1v1h-1zM8 25h1v1h-1zM8 26h1v1h-1zM9 19h1v1h-1zM9 20h1v1h-1zM9 21h1v1h-1zM9 22h1v1h-1zM9 23h1v1h-1zM9 24h1v1h-1zM9 25h1v1h-1zM9 26h1v1h-1zM11 19h1v1h-1zM11 20h1v1h-1zM11 21h1v1h-1zM11 22h1v1h-1zM11 23h1v1h-1zM11 24h1v1h-1zM11 25h1v1h-1zM11 26h1v1h-1zM12 19h1v1h-1zM12 20h1v1h-1zM12 21h1v1h-1zM12 22h1v1h-1zM12 23h1v1h-1zM12 24h1v1h-1zM12 25h1v1h-1zM12 26h1v1h-1zM13 19h1v1h-1zM13 20h1v1h-1zM13 21h1v1h-1zM13 22h1v1h-1zM13 23h1v1h-1zM13 24h1v1h-1zM13 25h1v1h-1zM13 26h1v1h-1zM14 19h1v1h-1zM14 20h1v1h-1zM14 21h1v1h-1zM14 22h1v1h-1zM14 23h1v1h-1zM14 24h1v1h-1zM14 25h1v1h-1zM14 26h1v1h-1zM16 19h1v1h-1zM16 20h1v1h-1zM16 21h1v1h-1zM16 22h1v1h-1zM16 23h1v1h-1zM16 24h1v1h-1zM16 25h1v1h-1zM16 26h1v1h-1zM17 19h1v1h-1zM17 20h1v1h-1zM17 21h1v1h-1zM17 22h1v1h-1zM17 23h1v1h-1zM17 24h1v1h-1zM17 25h1v1h-1zM17 26h1v1h-1zM18 19h1v1h-1zM18 20h1v1h-1zM18 21h1v1h-1zM18 22h1v1h-1zM18 23h1v1h-1zM18 24h1v1h-1zM18 25h1v1h-1zM18 26h1v1h-1zM19 19h1v1h-1zM19 20h1v1h-1zM19 21h1v1h-1zM19 22h1v1h-1zM19 23h1v1h-1zM19 24h1v1h-1zM19 25h1v1h-1zM19 26h1v1h-1zM22 19h1v1h-1zM22 20h1v1h-1zM22 21h1v1h-1zM22 22h1v1h-1zM22 23h1v1h-1zM22 24h1v1h-1zM22 25h1v1h-1zM22 26h1v1h-1z"/><path fill="#4f3036" d="M2 5h1v1h-1zM2 6h1v1h-1zM2 7h1v1h-1zM2 8h1v1h-1zM2 9h1v1h-1zM2 10h1v1h-1zM2 11h1v1h-1zM2 12h1v1h-1zM2 13h1v1h-1zM2 14h1v1h-1zM2 15h1v1h-1zM2 16h1v1h-1zM2 17h1v1h-1zM2 27h1v1h-1zM21 27h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM4 27h1v1h-1zM5 19h1v1h-1zM5 20h1v1h-1zM5 21h1v1h-1zM5 22h1v1h-1zM5 23h1v1h-1zM5 24h1v1h-1zM5 25h1v1h-1zM5 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 19h1v1h-1zM10 20h1v1h-1zM10 21h1v1h-1zM10 22h1v1h-1zM10 23h1v1h-1zM10 24h1v1h-1zM10 25h1v1h-1zM10 26h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM14 27h1v1h-1zM15 19h1v1h-1zM15 20h1v1h-1zM15 21h1v1h-1zM15 22h1v1h-1zM15 23h1v1h-1zM15 24h1v1h-1zM15 25h1v1h-1zM15 26h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM17 27h1v1h-1zM18 27h1v1h-1zM19 27h1v1h-1zM20 19h1v1h-1zM20 20h1v1h-1zM20 21h1v1h-1zM20 22h1v1h-1zM20 23h1v1h-1zM20 24h1v1h-1zM20 25h1v1h-1zM20 26h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1z"/><path fill="#a86c58" d="M2 18h1v1h-1zM21 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM4 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM9 18h1v1h-1zM10 18h1v1h-1zM11 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM16 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM22 18h1v1h-1z"/><rect x="4" y="7" width="3" height="3" fill="#ffc94d" opacity=".25"/></svg><span class="stall-name"><span lang="vi">Kem</span><span lang="en">Ice cream</span></span></button></div></div></div>
     <div class="wrap">
       <div class="snack-sprites" hidden aria-hidden="true">
         <img src="assets/pixel/food-burger-big.png" alt="" width="18" height="18" data-snack="burger">
@@ -2061,6 +2158,35 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
   const field = document.getElementById('galaxyField');
   if (!hero || !field) return;
 
+  // ---------------------------------------------------------------- festive seasons
+  // Decorations follow the date in Ann Arbor: Christmas lights on the castle and the hamlet from
+  // 20 November to 6 January, red lanterns and hoa mai around Tet (two weeks before to a week after
+  // the lunar new year), star lanterns for Trung thu, pumpkins for Halloween, and snow on the hills
+  // from December into early March or whenever it is really snowing. <html data-season data-snow>
+  // drives the CSS; preview with ?season=xmas|tet|trungthu|halloween|none and ?snow=1|0.
+  const LUNAR_NEW_YEAR = {2026: '02-17', 2027: '02-06', 2028: '01-26', 2029: '02-13', 2030: '02-03', 2031: '01-23'};
+  const MID_AUTUMN = {2026: '09-25', 2027: '09-15', 2028: '10-03', 2029: '09-22', 2030: '09-12', 2031: '10-01'};
+  function seasonAt(ms) {
+    const local = new Date(new Date(ms).toLocaleString('en-US', {timeZone: 'America/Detroit'}));
+    const y = local.getFullYear(), m = local.getMonth() + 1, d = local.getDate();
+    const day = Date.UTC(y, m - 1, d) / 864e5;
+    const near = (table, before, after) => [y - 1, y, y + 1].some(year => {
+      if (!table[year]) return false;
+      const [mm, dd] = table[year].split('-').map(Number), diff = day - Date.UTC(year, mm - 1, dd) / 864e5;
+      return diff >= -before && diff <= after;
+    });
+    const season = near(LUNAR_NEW_YEAR, 14, 7) ? 'tet' : near(MID_AUTUMN, 7, 2) ? 'trungthu'
+      : (m === 11 && d >= 20) || m === 12 || (m === 1 && d <= 6) ? 'xmas' : m === 10 && d >= 20 ? 'halloween' : 'none';
+    return {season, snow: m === 12 || m <= 2 || (m === 3 && d <= 10)};
+  }
+  (() => {
+    const params = new URLSearchParams(location.search), found = seasonAt(Date.now());
+    const season = ['xmas', 'tet', 'trungthu', 'halloween', 'none'].includes(params.get('season')) ? params.get('season') : found.season;
+    const snow = params.has('snow') ? params.get('snow') === '1' : found.snow;
+    document.documentElement.dataset.season = season;
+    if (snow) document.documentElement.dataset.snow = '';
+  })();
+
   function random(seed) {
     return () => {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -2499,19 +2625,52 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     ctx.globalAlpha = 1;
   }
 
-  async function startWeather() {
-    const data = await currentWeather();
-    const scene = hero.closest('.hero');
-    if (!data || !scene) return;
+  // The weather button beside VI and EN shows today's Ann Arbor weather as an emoji and turns the
+  // weather effects (rain, snow, fog, lightning, the veil over the stars) off or on; the choice is
+  // remembered in this browser. The little clouds stay either way.
+  const WEATHER_EMOJI = {clear: '🌙', clouds: '☁️', overcast: '☁️', fog: '🌫️', drizzle: '🌦️', rain: '🌧️', snow: '🌨️', storm: '⛈️'};
+  let liveWeather = null;
+  const weatherWanted = () => { try { return localStorage.getItem('bebi-weather') !== 'off'; } catch { return true; } };
+  function applyWeather() {
+    const scene = hero.closest('.hero'), on = weatherWanted(), data = on ? liveWeather : null;
+    const button = document.getElementById('weatherToggle');
+    if (button) {
+      const vi = document.documentElement.lang !== 'en';
+      button.setAttribute('aria-pressed', String(on));
+      button.textContent = WEATHER_EMOJI[liveWeather?.kind] || '🌙';
+      button.title = button.ariaLabel = vi ? (on ? 'Tắt hiệu ứng thời tiết' : 'Bật hiệu ứng thời tiết') : (on ? 'Turn weather effects off' : 'Turn weather effects on');
+    }
     sky.weather = data;
-    scene.dataset.weather = data.kind;
-    scene.style.setProperty('--veil', String(VEIL[data.kind] ?? 0));
-    if (['fog', 'drizzle', 'rain', 'storm'].includes(data.kind)) {
-      const url = fogImage();
-      document.querySelectorAll('.weather-fog').forEach(el => { el.style.backgroundImage = `url("${url}")`; });
+    if (!scene) return;
+    if (data) {
+      scene.dataset.weather = data.kind;
+      scene.style.setProperty('--veil', String(VEIL[data.kind] ?? 0));
+      // Real snow outside puts snow on the hills whatever the date.
+      if (data.kind === 'snow' && !new URLSearchParams(location.search).has('snow')) document.documentElement.dataset.snow = '';
+      if (['fog', 'drizzle', 'rain', 'storm'].includes(data.kind)) {
+        const url = sky.fogUrl || (sky.fogUrl = fogImage());
+        document.querySelectorAll('.weather-fog').forEach(el => { el.style.backgroundImage = `url("${url}")`; });
+      }
+    } else {
+      delete scene.dataset.weather;
+      scene.style.setProperty('--veil', '0');
+      const precip = document.querySelector('.weather-precip');
+      precip?.getContext('2d')?.clearRect(0, 0, precip.width, precip.height);
     }
     sizeWeather();
     drawSky(performance.now());
+  }
+  document.getElementById('weatherToggle')?.addEventListener('click', () => {
+    try { localStorage.setItem('bebi-weather', weatherWanted() ? 'off' : 'on'); } catch {}
+    applyWeather();
+  });
+  new MutationObserver(applyWeather).observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
+  async function startWeather() {
+    applyWeather();
+    const data = await currentWeather();
+    if (!data) return;
+    liveWeather = data;
+    applyWeather();
   }
 
   // One animation loop, about 24 frames a second: the banner's twinkle, rain or snow (only while the
@@ -2522,7 +2681,7 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       placeBalloon(t);
       if (t - (loop.last || 0) > 40) {
         loop.last = t;
-        if (sky.running) drawSky(t);
+        if (sky.running) { drawSky(t); drawWishes(t); }
         drawNorth(t);
         drawBalloon(t);
       }
@@ -2570,6 +2729,7 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       sky.width = w; sky.height = h; sky.pixel = pixel;
       const twinkle = document.getElementById('starTwinkle');
       if (twinkle) { twinkle.width = w; twinkle.height = h; drawSky(performance.now()); }
+      sizeWish();
       placeSparkles(points, pixel, rect.width, rect.height);
       placeMoon(rect.width, rect.height, pixel);
       sizeWeather();
@@ -2624,6 +2784,14 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     ['aaa', 'bdb', ' f ']
   ];
   const LANTERN_INK = {a: '#a8461d', b: '#f29a2e', c: '#ffc94d', d: '#fff1b8'};
+  // Festive stand-ins: at Tet the lanterns turn red and the small ones become lucky red envelopes
+  // (lì xì); at Trung thu the larger ones become five-pointed star lanterns (đèn ông sao).
+  const LIXI = ['rrrr', 'rggr', 'rrrr', 'rrrr', 'rrrr'];
+  const STAR_LANTERN = ['   a   ', '   a   ', 'aaabaaa', ' abcba ', '  aba  ', ' ab ba ', ' a   a '];
+  const FEST_INK = {
+    tet: {a: '#7a1a14', b: '#c8302c', c: '#ff5a3c', d: '#ffd56e', r: '#d42f2a', g: '#ffd56e'},
+    trungthu: {a: '#c8302c', b: '#ff7a3c', c: '#ffe27a', d: '#fff1b8'}
+  };
   function makeLanterns(W, H, pixel) {
     const wrap = document.querySelector('.wrap');
     const gutter = wrap ? Math.floor(wrap.getBoundingClientRect().left / pixel) : 0;
@@ -2657,7 +2825,11 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       // Fade in just above the bottom edge and out high up, as a lantern climbs away.
       const fade = Math.max(0, Math.min(1, (H + 8 - y) / (H * .12), y / (H * .18))) * (.55 + .45 * l.depth);
       if (fade <= 0) continue;
-      const shape = LANTERN[l.size], half = Math.floor(shape[0].length / 2);
+      const season = document.documentElement.dataset.season;
+      let shape = LANTERN[l.size], ink = LANTERN_INK;
+      if (season === 'tet') { ink = FEST_INK.tet; if (l.size === 2) shape = LIXI; }
+      else if (season === 'trungthu' && l.size < 2) { ink = FEST_INK.trungthu; shape = STAR_LANTERN; }
+      const half = Math.floor(shape[0].length / 2);
       const flame = calm || Math.sin(sec * 9 + l.phase * 3) + Math.sin(sec * 23 + l.phase) > -.4;
       // The halo: a soft warm disc, stronger when the flame is up.
       const reach = [11, 8, 5][l.size];
@@ -2670,11 +2842,121 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       shape.forEach((row, dy) => [...row].forEach((ch, dx) => {
         if (ch === ' ') return;
         ctx.globalAlpha = fade;
-        ctx.fillStyle = ch === 'f' ? (flame ? '#fff6d2' : '#ffb347') : LANTERN_INK[ch];
+        ctx.fillStyle = ch === 'f' ? (flame ? '#fff6d2' : '#ffb347') : ink[ch];
         ctx.fillRect(x - half + dx, y + dy, 1, 1);
       }));
     }
     ctx.globalAlpha = 1;
+  }
+  // ---------------------------------------------------------------- wishes over the banner
+  // Click or tap the sky and a paper lantern carries your wish up from that spot, with a little
+  // burst of sparks and, now and then, a shooting star. Move the pointer over the meadow and a few
+  // fireflies drift after it. Drawn on .wish-sky, in front of the hills but under the text.
+  const wish = {canvas: document.querySelector('.wish-sky'), ctx: null, pixel: 3, lanterns: [], sparks: [], streaks: [], flies: [], target: null, moved: 0, drawn: false};
+  function sizeWish() {
+    const c = wish.canvas;
+    if (!c) return;
+    const rect = c.getBoundingClientRect();
+    if (!rect.width) return;
+    wish.pixel = rect.width < 700 ? 2 : 3;
+    c.width = Math.ceil(rect.width / wish.pixel);
+    c.height = Math.ceil(rect.height / wish.pixel);
+    wish.ctx = c.getContext('2d');
+  }
+  function drawWishes(t) {
+    const ctx = wish.ctx;
+    if (!ctx) return;
+    const W = wish.canvas.width, H = wish.canvas.height, busy = wish.lanterns.length || wish.sparks.length || wish.streaks.length || wish.flies.length;
+    if (!busy && !wish.drawn) return;
+    ctx.clearRect(0, 0, W, H);
+    wish.drawn = !!busy;
+    const season = document.documentElement.dataset.season, ink = season === 'tet' ? FEST_INK.tet : LANTERN_INK;
+    wish.lanterns = wish.lanterns.filter(l => t - l.born < 10000);
+    for (const l of wish.lanterns) {
+      const age = (t - l.born) / 1000, shape = LANTERN[l.size], half = Math.floor(shape[0].length / 2);
+      const y = Math.round(l.y - age * l.rise), x = Math.round(l.x + Math.sin(age * 1.3 + l.phase) * 2.2);
+      const fade = Math.min(1, age * 2.5) * Math.max(0, 1 - age / 10) * Math.min(1, (y + 6) / (H * .2));
+      if (fade <= 0) continue;
+      const flame = Math.sin(age * 9 + l.phase * 3) + Math.sin(age * 23 + l.phase) > -.4, reach = [11, 8, 5][l.size];
+      const halo = ctx.createRadialGradient(x, y + shape.length * .45, 0, x, y + shape.length * .45, reach);
+      halo.addColorStop(0, `rgba(255,190,90,${(fade * (flame ? .34 : .24)).toFixed(3)})`);
+      halo.addColorStop(1, 'rgba(255,190,90,0)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = halo;
+      ctx.fillRect(x - reach, y + shape.length * .45 - reach, reach * 2, reach * 2);
+      shape.forEach((row, dy) => [...row].forEach((ch, dx) => {
+        if (ch === ' ') return;
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = ch === 'f' ? (flame ? '#fff6d2' : '#ffb347') : ink[ch];
+        ctx.fillRect(x - half + dx, y + dy, 1, 1);
+      }));
+    }
+    wish.sparks = wish.sparks.filter(s => t - s.born < 700);
+    for (const s of wish.sparks) {
+      const k = (t - s.born) / 700;
+      ctx.globalAlpha = 1 - k;
+      ctx.fillStyle = '#fff1b8';
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) ctx.fillRect(Math.round(s.x + dx * (2 + k * 7)), Math.round(s.y + dy * (2 + k * 7)), 1, 1);
+    }
+    wish.streaks = wish.streaks.filter(m => m.life < m.max);
+    for (const m of wish.streaks) {
+      m.life++; m.x += m.vx; m.y += m.vy;
+      const fade = Math.sin(Math.PI * m.life / m.max);
+      for (let k = 0; k < 9; k++) {
+        ctx.globalAlpha = Math.max(0, fade * (1 - k / 9));
+        ctx.fillStyle = k < 2 ? '#fff4e2' : '#b9c6f2';
+        ctx.fillRect(Math.round(m.x - m.vx / 3 * k), Math.round(m.y - m.vy / 3 * k), 1, 1);
+      }
+    }
+    // Fireflies ease toward the pointer, wobble, blink, and fade two seconds after it stops.
+    const still = t - wish.moved;
+    if (wish.target && still < 2500 && wish.flies.length < 6 && Math.random() < .2) {
+      wish.flies.push({x: wish.target.x + (Math.random() - .5) * 30, y: wish.target.y + 8 + Math.random() * 8, vx: 0, vy: 0, phase: Math.random() * 6.28});
+    }
+    wish.flies = wish.flies.filter(f => (f.alpha = Math.max(0, 1 - Math.max(0, still - 1500) / 1500)) > 0 || still < 1500);
+    for (const f of wish.flies) {
+      if (wish.target) {
+        f.vx += (wish.target.x + Math.sin(t / 700 + f.phase) * 9 - f.x) * .006;
+        f.vy += (wish.target.y - 6 + Math.cos(t / 900 + f.phase) * 6 - f.y) * .006;
+      }
+      f.vx *= .9; f.vy *= .9; f.x += f.vx; f.y += f.vy;
+      const blink = .55 + .45 * Math.sin(t / 260 + f.phase * 3);
+      const a = f.alpha * blink, glowFill = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 4);
+      glowFill.addColorStop(0, `rgba(230,255,140,${(a * .45).toFixed(3)})`);
+      glowFill.addColorStop(1, 'rgba(230,255,140,0)');
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = glowFill;
+      ctx.fillRect(f.x - 4, f.y - 4, 8, 8);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#f4ffb0';
+      ctx.fillRect(Math.round(f.x), Math.round(f.y), 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+  if (wish.canvas && !calm) {
+    const scene = hero.closest('.hero');
+    const spot = e => {
+      const rect = wish.canvas.getBoundingClientRect();
+      return {x: (e.clientX - rect.left) / wish.pixel, y: (e.clientY - rect.top) / wish.pixel, h: rect.height / wish.pixel};
+    };
+    scene?.addEventListener('click', e => {
+      if (e.target.closest('a,button,input,select,textarea,label,summary,form,[role=group]')) return;
+      const p = spot(e), now = performance.now();
+      if (wish.lanterns.length > 14) wish.lanterns.shift();
+      wish.lanterns.push({x: p.x, y: p.y - 3, born: now, size: 1, rise: 7 + Math.random() * 3, phase: Math.random() * 6.28});
+      wish.sparks.push({x: p.x, y: p.y, born: now});
+      if (Math.random() < .4) {
+        const W = wish.canvas.width;
+        wish.streaks.push({x: W * (.35 + Math.random() * .6), y: p.h * (.04 + Math.random() * .2), vx: -3.4, vy: 1.7, life: 0, max: 16 + Math.random() * 8});
+      }
+    });
+    scene?.addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return;
+      const p = spot(e);
+      if (p.y < p.h * .55) return;
+      wish.target = {x: p.x, y: p.y};
+      wish.moved = performance.now();
+    }, {passive: true});
   }
   // ---------------------------------------------------------------- the bánh bao balloon
   // A hot-air balloon shaped like a bánh bao (pleats swirling up to a pinched top), with the bebi chef
@@ -3285,10 +3567,10 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     const reopens=vi?', mở lại ':', reopens ';
     const today=dayAt(schedule,midnight,0),yesterday=dayAt(schedule,midnight,-1);
     const full=periods=>periods?.some(([a,b])=>a==='00:00'&&b==='24:00');
-    if(full(today.periods))return {open:true,text:vi?'Mở 24 giờ':'Open 24 hours'};
+    if(full(today.periods))return {open:true,left:Infinity,text:vi?'Mở 24 giờ':'Open 24 hours'};
     const at12=hm=>clockText(hm,lang);
     for(const [start,end] of yesterday.periods||[]){
-      if(minutes(end)<minutes(start)&&minute<minutes(end))return {open:true,text:until+at12(end)};
+      if(minutes(end)<minutes(start)&&minute<minutes(end))return {open:true,left:minutes(end)-minute,text:until+at12(end)};
     }
     if(!Array.isArray(today.periods))return null;
     const periods=today.periods;
@@ -3297,7 +3579,9 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       if(minute<minutes(start))return {open:false,text:i===0?opensAt+at12(start):(vi?'Nghỉ giữa ca':'Closed')+reopens+at12(start)};
       if(minutes(end)<minutes(start)||minute<minutes(end)){
         const later=periods[i+1];
-        return {open:true,text:until+at12(end)+(later?reopens+at12(later[0]):'')};
+        // left: minutes until this opening ends (cards light a lantern, which flickers near closing).
+        const left=minutes(end)<minutes(start)?24*60-minute+minutes(end):minutes(end)-minute;
+        return {open:true,left,text:until+at12(end)+(later?reopens+at12(later[0]):'')};
       }
     }
     const next=nextOpening(schedule,midnight);
@@ -4365,13 +4649,22 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     const price=dish.price!=null?`<span class="dish-price"><svg class="px-cash" viewBox="0 0 16 11" aria-hidden="true" focusable="false"><use href="#px-cash"/></svg>${esc(priceLabel(dish.price))}</span>`:'';
     return `<li><svg class="dish-bullet" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><use href="#px-moon"/></svg><span class="dish-text"><span class="dish-en">${esc(dish.name)}</span>${gloss}${meta?`<span class="dish-meta">${esc(meta)}</span>`:''}</span>${price}</li>`;
   }
+  // A pixel lantern hangs from the top edge of a card whose place is open now, and gutters in the
+  // last 45 minutes before closing; a closed place gets a sleeping moon. No hours known: nothing.
+  const LAMP_SVG='<svg viewBox="0 0 9 14" focusable="false"><path fill="#8a7a68" d="M4 0h1v3h-1z"/><path fill="#5a2e1c" d="M2 3h5v1h-5zM2 10h5v1h-5z"/><path fill="#a8461d" d="M1 4h1v1h-1zM7 4h1v1h-1zM0 5h1v4h-1zM8 5h1v4h-1zM1 9h1v1h-1zM7 9h1v1h-1z"/><path fill="#f29a2e" d="M2 4h5v1h-5zM1 5h7v4h-7zM2 9h5v1h-5z"/><g class="lamp-light"><path fill="#ffc94d" d="M3 5h3v1h-3zM2 6h5v2h-5zM3 8h3v1h-3z"/><path fill="#fff1b8" d="M4 6h1v2h-1z"/></g><path fill="#ffb347" d="M4 11h1v3h-1z"/></svg>';
+  const MOON_SVG='<svg viewBox="0 0 11 14" focusable="false"><path fill="#8a7a68" d="M3 0h1v3h-1z"/><path fill="#e9e4c6" d="M2 3h3v1h-3zM1 4h2v1h-2zM0 5h2v3h-2zM1 8h2v1h-2zM2 9h3v1h-3z"/><g class="zz"><path fill="#b9c2f2" d="M6 4h3v1h-3zM7 5h1v1h-1zM6 6h3v1h-3z"/></g><g class="zz zz2"><path fill="#b9c2f2" d="M8 1h2v1h-2zM9 2h1v1h-1zM8 3h2v1h-2z"/></g></svg>';
+  function cardLamp(status){
+    if(!status)return '';
+    const state=status.open?(status.left<=45?'closing':'open'):'closed';
+    return `<span class="card-lamp" data-lamp="${state}" aria-hidden="true">${state==='closed'?MOON_SVG:LAMP_SVG}</span>`;
+  }
   function placeCard(r){
     const dishes=cardDishes(r),dish=dishes[0];
     const action=menuItems(r).length||r.menuUrl||menuCatalog(r)?'menu':'details';
     const schedule=scheduleFor(r),operating=cardOperating(r,schedule,BebiHours.status(schedule,lang));
     const status=BebiHours.status(schedule,lang);
     const badge=status?`<span class="closed-badge"><b>${lang==='vi'?'Đang đóng cửa':'Closed now'}</b><span data-clock="${esc(r.id)}" data-open="${status.open===true}">${esc(status.text)}</span></span>`:'';
-    return `<article class="card" data-operating="${operating}" data-id="${esc(r.id)}">${badge}${renderMosaic(r,dish)}<div class="card-body">${venueInfo(r)}${dishes.length?`<ul class="card-dishes" aria-label="${lang==='vi'?'Món tiêu biểu':'Signature dishes'}">${dishes.map(d=>cardDishRow(r,d)).join('')}</ul>`:''}<div class="card-bottom"><button class="btn" data-detail="${esc(r.id)}" aria-label="${esc(t(action)+': '+r.name)}">${t(action)}</button><span class="card-shortcuts"><a class="btn maps-shortcut" href="${esc(mapsPhotosURL(r))}" target="_blank" rel="noopener noreferrer" aria-label="${esc((lang==='vi'?'Mở trên Google Maps: ':'Open in Google Maps: ')+r.name)}" title="Google Maps"><svg class="px-ico" viewBox="0 0 11 15" aria-hidden="true" focusable="false"><use href="#px-pin"/></svg></a>${favoriteButton(r,'btn inline-save')}</span></div></div></article>`;
+    return `<article class="card" data-operating="${operating}" data-id="${esc(r.id)}">${cardLamp(status)}${badge}${renderMosaic(r,dish)}<div class="card-body">${venueInfo(r)}${dishes.length?`<ul class="card-dishes" aria-label="${lang==='vi'?'Món tiêu biểu':'Signature dishes'}">${dishes.map(d=>cardDishRow(r,d)).join('')}</ul>`:''}<div class="card-bottom"><button class="btn" data-detail="${esc(r.id)}" aria-label="${esc(t(action)+': '+r.name)}">${t(action)}</button><span class="card-shortcuts"><a class="btn maps-shortcut" href="${esc(mapsPhotosURL(r))}" target="_blank" rel="noopener noreferrer" aria-label="${esc((lang==='vi'?'Mở trên Google Maps: ':'Open in Google Maps: ')+r.name)}" title="Google Maps"><svg class="px-ico" viewBox="0 0 11 15" aria-hidden="true" focusable="false"><use href="#px-pin"/></svg></a>${favoriteButton(r,'btn inline-save')}</span></div></div></article>`;
   }
   function render(){
     const list=filtered();
@@ -4798,6 +5091,14 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
   });
   $('openNowButton').addEventListener('click',()=>{state.openNow=!state.openNow;invalidateSearch();render();});
   // Rice switch: pressing the active choice again shows every place.
+  // Night market stalls on the picnic meadow: each searches for its dish across every kind of place.
+  document.addEventListener('click',e=>{
+    const stall=e.target.closest('[data-market]');
+    if(!stall)return;
+    state.rice='all';state.type=ALL_TYPES;state.saved=false;state.limit=defaults.limit;
+    state.search=stall.dataset.market;$('search').value=state.search;invalidateSearch();render();
+    $('resultsTitle').focus({preventScroll:true});resultScroll();
+  });
   document.querySelectorAll('[data-rice]').forEach(b=>b.addEventListener('click',()=>{
     state.rice=state.rice===b.dataset.rice?'all':b.dataset.rice;state.limit=defaults.limit;invalidateSearch();render();
   }));
@@ -4886,6 +5187,143 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
   startAtHome();
 })();
 
+</script>
+  <script>// The bebi chef, alive. A small pixel chef sits on the top edge of the card you are looking at (the
+// one under the pointer, else the one nearest the top third of the window) and hops to the next
+// card as you scroll. It blinks, and drools while you look at a dish or its photos. Click it and it
+// cooks for a moment, then picks somewhere for you, like "Chọn hộ mình".
+(() => {
+  'use strict';
+  const results = document.getElementById('results'), cards = document.getElementById('cards');
+  if (!results || !cards) return;
+  const calm = !(window.matchMedia && matchMedia('(prefers-reduced-motion: no-preference)').matches);
+
+  // 13 x 16 pixels: chef hat, the round bun face with rosy cheeks, white jacket, striped apron, and
+  // little legs that hang over the card's edge.
+  const SIT = [
+    '    HHHHH    ',
+    '   HHHHHHH   ',
+    '   GHHHHHH   ',
+    '    ttttt    ',
+    '  hhhhhhhhh  ',
+    ' hhhhhhhhhhh ',
+    ' hhhehhhehhh ',
+    ' hchhhmhhhch ',
+    ' hhhhhhhhhhh ',
+    '  nhhhhhhhn  ',
+    '   wwwwwww   ',
+    '  swqQqQqws  ',
+    '  swqQqQqws  ',
+    '   wqQqQqw   ',
+    '   hh   hh   ',
+    '   kk   kk   '
+  ];
+  const swap = (rows, changes) => rows.map((row, i) => changes[i] ?? row);
+  const FRAMES = {
+    sit: SIT,
+    blink: swap(SIT, {6: ' hhhnhhhnhhh '}),
+    drool: swap(SIT, {7: ' hchhhMhhhch ', 8: ' hhhhhdhhhhh '}),
+    drool2: swap(SIT, {7: ' hchhhMhhhch ', 8: ' hhhhhdhhhhh ', 9: '  nhhhdhhhn  '}),
+    cook: swap(SIT, {6: ' hhhnhhhnhhh ', 8: 'vhhhhhhhhhhh ', 9: '  nhhhhhhhnv', 10: ' PPPPPPPPPPP ', 11: '  ppppppppp  ', 12: '  ppppppppp  ', 13: '   ppppppp   '}),
+    cook2: swap(SIT, {6: ' hhhnhhhnhhh ', 8: ' hhhhhhhhhhhv', 9: 'v nhhhhhhhn  ', 10: ' PPPPPPPPPPP ', 11: '  ppppppppp  ', 12: '  ppppppppp  ', 13: '   ppppppp   '})
+  };
+  const INK = {
+    H: '#ffffff', G: '#d9deef', t: '#d9b47a', h: '#f6e1b0', n: '#dcc08c', e: '#2b1d22', c: '#f29aa6',
+    m: '#8a3a3a', M: '#5a1f2a', d: '#8fd0ff', w: '#fffaf2', s: '#cfd6ea', q: '#e9c58f', Q: '#b98a4e',
+    k: '#4a3a3a', P: '#9aa0b8', p: '#5a5f78', v: '#e9eefb'
+  };
+
+  const buddy = document.createElement('button');
+  buddy.type = 'button';
+  buddy.className = 'bebi-buddy';
+  buddy.hidden = true;
+  const canvas = document.createElement('canvas');
+  canvas.width = 13; canvas.height = 16;
+  canvas.setAttribute('aria-hidden', 'true');
+  buddy.appendChild(canvas);
+  results.appendChild(buddy);
+  const ctx = canvas.getContext('2d');
+  let shown = '';
+  function draw(name) {
+    if (name === shown || !ctx) return;
+    shown = name;
+    ctx.clearRect(0, 0, 13, 16);
+    FRAMES[name].forEach((row, y) => [...row].forEach((ch, x) => {
+      if (ch === ' ') return;
+      ctx.fillStyle = INK[ch];
+      ctx.fillRect(x, y, 1, 1);
+    }));
+  }
+  draw('sit');
+
+  const label = () => document.querySelector('#randomButton [data-i18n="surprise"]')?.textContent?.trim() || 'Chọn hộ mình';
+  let target = null, hover = null, drool = false, cooking = 0, blinkAt = performance.now() + 3000, queued = false;
+  const scale = () => (innerWidth < 600 ? 2 : 3);
+
+  function pickCard() {
+    if (hover && hover.isConnected) return hover;
+    const mark = innerHeight * .35;
+    let best = null, bestD = Infinity;
+    for (const card of cards.querySelectorAll('.card')) {
+      const r = card.getBoundingClientRect();
+      if (r.bottom < 80 || r.top > innerHeight - 80) continue;
+      const d = Math.abs(r.top - mark);
+      if (d < bestD) { bestD = d; best = card; }
+    }
+    return best;
+  }
+  // Sits on the middle of the card's top edge, a little right of centre: the corners below the
+  // previous card hold its buttons, the middle of that gap is free.
+  function place() {
+    queued = false;
+    const card = pickCard();
+    if (!card) { buddy.hidden = true; target = null; return; }
+    const S = scale(), base = results.getBoundingClientRect(), r = card.getBoundingClientRect();
+    canvas.style.width = 13 * S + 'px';
+    canvas.style.height = 16 * S + 'px';
+    const x = Math.round(r.left - base.left + r.width / 2 - 6.5 * S + 28), y = Math.round(r.top - base.top - 14 * S + 2);
+    if (card !== target) {
+      target = card;
+      if (!calm && !buddy.hidden) { buddy.classList.remove('hop'); void buddy.offsetWidth; buddy.classList.add('hop'); }
+    }
+    buddy.hidden = false;
+    buddy.setAttribute('aria-label', label());
+    buddy.title = label();
+    buddy.style.transform = `translate(${x}px,${y}px)`;
+  }
+  const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(place); } };
+  addEventListener('scroll', schedule, {passive: true});
+  addEventListener('resize', schedule, {passive: true});
+  new MutationObserver(schedule).observe(cards, {childList: true});
+  cards.addEventListener('pointerover', e => {
+    if (e.pointerType !== 'mouse') return;
+    const card = e.target.closest('.card');
+    if (card && card !== hover) { hover = card; schedule(); }
+    drool = !!(card && card === target && e.target.closest('.card-dishes li, .venue-mosaic, .dish-row'));
+  });
+  cards.addEventListener('pointerleave', () => { hover = null; drool = false; schedule(); });
+  buddy.addEventListener('animationend', () => buddy.classList.remove('hop'));
+
+  buddy.addEventListener('click', () => {
+    if (calm) { document.getElementById('randomButton')?.click(); return; }
+    if (cooking) return;
+    cooking = performance.now();
+    setTimeout(() => { cooking = 0; document.getElementById('randomButton')?.click(); }, 900);
+  });
+
+  // Frames: cooking stirs the pot, drooling drips, otherwise a blink every few seconds.
+  if (!calm) {
+    setInterval(() => {
+      if (document.hidden || buddy.hidden) return;
+      const now = performance.now(), beat = Math.floor(now / 220) % 2;
+      if (cooking) return draw(beat ? 'cook' : 'cook2');
+      if (drool) return draw(beat ? 'drool' : 'drool2');
+      if (now > blinkAt) { draw('blink'); if (now > blinkAt + 160) blinkAt = now + 2500 + Math.random() * 3000; return; }
+      draw('sit');
+    }, 110);
+  }
+  schedule();
+})();
 </script>
 </body>
 </html>
