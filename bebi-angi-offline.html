@@ -153,6 +153,9 @@
      wants them mostly black); controls on them stay navy. Now and then a tiny pixel bánh bao
      (--zip-bun, 9 x 7 pixels shown at 2x) zips across a card or the filter panel: see bao-zip. */
   --night: #050608;
+  /* Cards and the filter panel let the starry page show through a little (owner, 2026-11-19);
+     the popup stays solid, since people read menus there. */
+  --night-glass: rgba(5,6,8,.86);
   --zip-bun: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23fffaf2' d='M4 0h1v1h-1zM5 2h1v1h-1zM5 3h1v1h-1zM6 3h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1z'/%3E%3Cpath fill='%23f2e4cc' d='M3 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM4 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM8 4h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1zM6 5h1v1h-1zM7 5h1v1h-1zM8 5h1v1h-1z'/%3E%3Cpath fill='%23cfb895' d='M4 1h1v1h-1zM3 2h1v1h-1zM3 3h1v1h-1z'/%3E%3Cpath fill='%23b49c7e' d='M0 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM7 6h1v1h-1z'/%3E%3C/svg%3E");
   --control: #2c3674;
   --raised: #3a4590;
@@ -270,7 +273,7 @@ option { background-color: var(--panel); color: var(--ink); }
 .disclosure { width: 7px; height: 7px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
 #filterPanel[open] .disclosure { transform: translateY(1px) rotate(225deg); }
 #filterPanel[open] > summary { color: var(--accent); border-color: var(--accent); }
-.filter-inner { position: relative; isolation: isolate; overflow: clip; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--night); padding: clamp(16px,2vw,24px); }
+.filter-inner { position: relative; isolation: isolate; overflow: clip; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--night-glass); padding: clamp(16px,2vw,24px); }
 .planner-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 19px clamp(18px,3vw,36px); }
 .field { min-width: 0; }
 .field-title { display: block; font-size:var(--fs-sm); font-weight:600; margin-bottom: 7px; }
@@ -790,7 +793,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   display: flex; flex-direction: column; position: relative; min-width: 0;
   /* A crisp 2px frame, a step lighter than the lines inside, so each card stands off the sky. */
   border: 2px solid #7d89d4; border-radius: 13px; overflow: clip; isolation: isolate;
-  background: var(--night);
+  background: var(--night-glass);
 }
 /* Now and then a tiny pixel bánh bao zips across the black behind the text, trailing a wisp of
    steam: a shooting star, but food. Every card has its own long, uneven rhythm (47 to 73 s, each
@@ -974,7 +977,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .px-ico { flex:none; display:block; fill:currentColor; shape-rendering:crispEdges; }
 .inline-save .px-ico, .detail-actions [data-fav] .px-ico { width:16.5px; height:21px; }
 .maps-shortcut .px-ico { width:16.5px; height:22.5px; }
-.empty { background: var(--night); border: 1px dashed var(--edge); border-radius: 12px; padding: clamp(22px,5vw,50px) clamp(14px,4vw,45px); grid-column: 1/-1; text-align: center; }
+.empty { background: var(--night-glass); border: 1px dashed var(--edge); border-radius: 12px; padding: clamp(22px,5vw,50px) clamp(14px,4vw,45px); grid-column: 1/-1; text-align: center; }
 .empty h3 { font: 700 var(--fs-h3)/1.25 var(--display-font); }
 .empty p { max-width: 55ch; margin: .5rem auto; color: var(--muted); font-size:var(--fs-md); }
 .empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 14px; }
@@ -1074,7 +1077,7 @@ dialog::backdrop { background: #0b0912cc; }
 }
 @media print {
   :root {
-    color-scheme:light; --page:white; --panel:white; --night:white; --control:white; --ink:black;
+    color-scheme:light; --page:white; --panel:white; --night:white; --night-glass:white; --control:white; --ink:black;
     --muted:#333; --faint:#444; --edge:#777; --line:#bbb; --accent:#503025; --lavender:#34283d;
   }
   html, html:has(dialog[open]) { overflow:visible; }
