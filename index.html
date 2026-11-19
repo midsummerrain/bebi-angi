@@ -220,7 +220,7 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .nav { justify-content: space-between; min-height: 67px; gap: 14px; }
 .brand { gap: 12px; width: fit-content; min-height: 44px; color: var(--ink); text-decoration: none; font: 700 31px/1.15 var(--display-font); letter-spacing: -.045em; }
 .nav-right { gap: 21px; }
-.nav-link, .lang button, .text-btn, .pick-button, .venue-name, .featured-open, .spotlight { background: transparent; border: 0; padding: 0; }
+.nav-link, .lang button, .text-btn, .pick-button, .venue-name, .featured-open { background: transparent; border: 0; padding: 0; }
 .nav-link, .lang button { min-height: 44px; font-size:var(--fs-sm); font-weight:600; }
 .nav-link { display: inline-flex; align-items: center; gap: 8px; }
 /* Pixel bookmark (same drawing as the cards' save button), painted in the text colour. */
@@ -333,7 +333,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 /* Pixel rating stars (drawn on a 13 px grid, shown at 1.5x). */
 .px-stars { display:inline-flex; gap:2px; vertical-align:-3px; margin-right:4px; }
 .px-stars svg { width:19.5px; height:19.5px; }
-.utility-footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-top: 1px solid var(--line); padding-block: 16px; }
+.utility-footer { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-block: 16px; }
 .footer-brand { font-size: 22px; white-space: nowrap; }
 .utility-footer > details { max-width: 65ch; min-width: 0; }
 .utility-footer > details > summary { margin-left: auto; }
@@ -532,27 +532,38 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 /* Recoleta has no italic; no synthesis keeps it upright instead of a faked slant (Fraunces keeps its real italic). */
 .hero h1 em { color: var(--accent); font: italic 500 1em/1.14 var(--display-font); letter-spacing: -.065em; font-synthesis: none; }
 .search-form { margin-top: clamp(16px,2vw,25px); max-width: 510px; }
-/* The search is the main action, so it is the one light surface on the night sky. */
-.search-bundle {
-  display: flex; align-items: center; gap: 11px; min-height: 58px; padding: 5px 5px 5px 18px; border-radius: 14px;
-  border: 0; background: var(--ink); color: var(--page); box-shadow: 0 14px 34px #01031299, 0 0 0 1px #ffffff40;
+/* Pixel corners: two 3 px steps cut from each corner, like the pixel art around it. */
+:root {
+  --px-corners: polygon(0 6px,3px 6px,3px 3px,6px 3px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 3px,calc(100% - 3px) 3px,calc(100% - 3px) 6px,100% 6px,
+    100% calc(100% - 6px),calc(100% - 3px) calc(100% - 6px),calc(100% - 3px) calc(100% - 3px),calc(100% - 6px) calc(100% - 3px),calc(100% - 6px) 100%,
+    6px 100%,6px calc(100% - 3px),3px calc(100% - 3px),3px calc(100% - 6px),0 calc(100% - 6px));
 }
-.search-bundle:focus-within { box-shadow: 0 14px 34px #01031299, 0 0 0 4px var(--focus); }
+/* The search is the main action, so it is the one light surface on the night sky: a pixel slab
+   with stepped corners and a hard pixel shadow that turns yellow while you type. */
+.search-form { position: relative; isolation: isolate; }
+.search-bundle {
+  display: flex; align-items: center; gap: 11px; min-height: 58px; padding: 5px 5px 5px 18px; border-radius: 0;
+  border: 0; background: var(--ink); color: var(--page); clip-path: var(--px-corners);
+}
+.search-form::before {
+  content: ""; position: absolute; z-index: -1; inset: 6px -6px -6px 6px; background: #000000b3; clip-path: var(--px-corners);
+}
+.search-form:focus-within::before { background: var(--focus); }
 .search-icon { width: 18px; height: 18px; color: var(--page); }
 .search { width: 100%; min-width: 0; min-height: 44px; background: transparent; border: 0; border-radius: 2px; color: var(--page); font-size:var(--fs-md); font-weight:600; }
 .search::placeholder { color: #474c7c; font-weight:400; opacity: 1; }
 .search:focus-visible { outline: 0; }
 .search::-webkit-search-cancel-button { filter: invert(1); }
 /* On the light bar the primary button turns navy so it still stands apart; the peach stays in its text. */
-.search-bundle .btn { flex-shrink: 0; padding-inline: 20px; border-radius: 10px; background: var(--page); border-color: var(--page); color: var(--accent); font-size: var(--fs-md); }
+.search-bundle .btn { flex-shrink: 0; padding-inline: 20px; border-radius: 0; clip-path: var(--px-corners); background: var(--page); border-color: var(--page); color: var(--accent); font-size: var(--fs-md); }
 @media (hover:hover) { .search-bundle .btn-primary:hover { background: var(--control); border-color: var(--control); } }
-/* Quick switches (start point, rice) sit right under the search on raised indigo tracks. */
+/* Quick switches (start point, rice) sit right under the search on black glass tracks, like the cards. */
 .hero-switches { display:flex; flex-wrap:wrap; align-items:center; gap:12px 26px; margin-top:16px; }
 .origin-switch { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; }
 .origin-switch-label { font-weight:600; font-size:var(--fs-md); color:var(--ink); text-shadow:0 1px 3px #01031299; }
 .origin-switch-track {
   display:inline-flex; gap:4px; padding:4px; border:1.5px solid var(--edge); border-radius:999px;
-  background:var(--control); box-shadow:0 10px 26px #01031280;
+  background:var(--night-glass); box-shadow:0 10px 26px #01031280;
 }
 .origin-switch button {
   display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:8px 18px 8px 14px;
@@ -560,27 +571,32 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 }
 .origin-switch button:not(:has(svg)) { padding-inline:18px; }
 .origin-switch button[aria-pressed=true] { background:var(--ink); color:var(--page); }
-.origin-glyph { width:20px; height:20px; fill:currentColor; flex:none; shape-rendering:crispEdges; }
+.origin-glyph { width:20px; height:20px; fill:currentColor; flex:none; shape-rendering:crispEdges; overflow:visible; }
+/* The four switch icons are alive: the school flag flaps and a window goes dark now and then,
+   smoke curls from the home chimney and its window flickers, steam rises off the rice, and the
+   burger's top bun hops. Frame by frame (steps), like the rest of the pixel art. */
+.origin-glyph :is(.flag-b,.steam-b) { opacity:0; }
+@media (prefers-reduced-motion:no-preference) {
+  .px-school .flag-a { animation:px-frame-a .9s steps(1) infinite; }
+  .px-school .flag-b { animation:px-frame-b .9s steps(1) infinite; }
+  .px-school .win { animation:px-lights 7s steps(1) infinite; }
+  .px-home .win { animation:px-flicker 2.6s steps(1) infinite; }
+  .px-home .smoke { animation:px-smoke 2.4s steps(4) infinite; }
+  .px-home .s2 { animation-delay:-1.2s; }
+  .px-rice .steam-a { animation:px-frame-a 1.1s steps(1) infinite; }
+  .px-rice .steam-b { animation:px-frame-b 1.1s steps(1) infinite; }
+  .px-burger .bun-top { animation:px-hop 2.2s steps(1) infinite; }
+}
+@keyframes px-frame-a { 0% { opacity:1; } 50% { opacity:0; } }
+@keyframes px-frame-b { 0% { opacity:0; } 50% { opacity:1; } }
+@keyframes px-lights { 0% { fill:#ffd36b; } 84% { fill:#4a3f63; } 92% { fill:#ffd36b; } }
+@keyframes px-flicker { 0% { opacity:1; } 40% { opacity:.7; } 52% { opacity:1; } 78% { opacity:.85; } 86% { opacity:1; } }
+@keyframes px-smoke { 0% { transform:translate(0,1px); opacity:.95; } 100% { transform:translate(2px,-4px); opacity:0; } }
+@keyframes px-hop { 0%,68% { transform:none; } 72% { transform:translateY(-1px); } 78% { transform:none; } 84% { transform:translateY(-1px); } 90% { transform:none; } }
 @media (hover:hover) { .origin-switch button[aria-pressed=false]:hover { background:var(--raised); } }
 .pick-button { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 6px; color: var(--ink); font-size:var(--fs-md); font-weight:600; }
 .dice-mark { width: 22px; height: 22px; fill: var(--accent); transform: rotate(-12deg); shape-rendering: crispEdges; }
 .arrow-mark { font-size:var(--fs-lg); color: var(--accent); }
-.spotlight {
-  justify-self: center; position: relative; z-index: 0; width: min(100%,425px); height: clamp(258px,21vw,306px); isolation: isolate;
-  display: grid; place-items: center; color: var(--ink); border-radius: 9px;
-}
-.food-planet {
-  position: relative; display: block; width: min(74%,276px); height: auto; aspect-ratio: 267/244;
-  overflow: visible; filter: drop-shadow(0 6px 8px #0f0b154a);
-}
-.orbit, .orbit-face, .orbit-track {
-  position: absolute; left: 1%; top: 33%; width: 99%; height: 35%;
-  border-radius: 50%; transform: rotate(-24deg); pointer-events: none;
-}
-.orbit, .orbit-face { border:1px solid #d6c3e9b8; }
-.orbit { z-index: -2; }
-.orbit-face { z-index:1; clip-path:inset(50% 0 0 0); border-bottom-color:#e6c9b8c7; }
-.orbit-track { display:none; }
 .sky-stars, .field-sparkles { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
 .sky-stars { z-index:-1; }
 :is(.sky-stars,.field-sparkles)::before, :is(.sky-stars,.field-sparkles)::after, :is(.sky-stars,.field-sparkles) i {
@@ -602,7 +618,6 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 #fieldStars { position:absolute; inset:0; image-rendering:pixelated; }
 .shooting-star { display:none; }
 .field-sparkles { opacity:.85; }
-.orbit-dot { position:absolute; width:7px; height:7px; border-radius:50%; background:#fff0cf; box-shadow:0 0 7px #ffc68e; offset-path:ellipse(50% 50% at 50% 50%); }
 @media (prefers-reduced-motion:no-preference) {
   :is(.sky-stars,.field-sparkles)::before, :is(.sky-stars,.field-sparkles)::after, :is(.sky-stars,.field-sparkles) i { animation:twinkle 6.8s steps(4,end) infinite; }
   :is(.sky-stars,.field-sparkles)::after { animation-delay:-4.1s; }
@@ -618,10 +633,6 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
     box-shadow:3px -3px #b8c8e3, 6px -3px #8aa5cb, 9px -6px #728ab0, 12px -6px #556d96, 15px -9px #405579;
     animation:star-pass 15s linear infinite; animation-delay:-2s;
   }
-  .orbit-track { display:block; animation:bao-depth 11s step-end infinite; }
-  .orbit-dot { animation:bao-orbit 11s linear infinite; }
-  .food-planet { animation:bao-float 7.8s ease-in-out infinite alternate; }
-  :is(.hero:has(.search:focus),body:has(dialog[open]) .hero) :is(.orbit-dot,.orbit-track,.food-planet),
   :is(.hero:has(.search:focus),body:has(dialog[open]) .hero) .sky-stars::before,
   :is(.hero:has(.search:focus),body:has(dialog[open]) .hero) .sky-stars::after,
   body:has(.search:focus,dialog[open]) :is(.sky-stars,.field-sparkles) :is(i,.shooting-star),
@@ -635,20 +646,8 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   46%,49% { opacity:.9; }
   52%,100% { transform:translate(-108px,63px); }
 }
-@keyframes bao-orbit { from { offset-distance:0%; } to { offset-distance:100%; } }
-@keyframes bao-depth { 0%,100% { z-index:2; } 50% { z-index:-1; } }
-@keyframes bao-float { from { translate:0 2px; } to { translate:0 -4px; } }
-.spotlight-caption {
-  z-index:3;
-  position: absolute; right: 1%; bottom: 5%; display: flex; flex-direction: column; align-items: flex-start;
-  gap: 0; padding: 9px 16px 9px 13px; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; text-align: left; background: var(--panel); box-shadow: 0 8px 22px #01031280;
-}
-.caption-dish { font: italic 500 clamp(1rem,1.5vw,1.25rem)/1.4 var(--display-font); }
-.caption-place { font-size:var(--fs-xs); font-weight:600; color: var(--accent); white-space: nowrap; }
-.caption-place span { padding-left: 3px; }
 @media (hover:hover) {
   .pick-button:hover { color: var(--accent); }
-  .spotlight:hover .caption-place { text-decoration: underline; text-underline-offset: .2em; }
 }
 @media (prefers-reduced-motion:no-preference) {
   .pick-button .dice-mark { transition: transform .23s ease-out; }
@@ -656,14 +655,12 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 }
 @media (max-width: 840px) and (min-width: 621px) {
   .hero-grid { grid-template-columns: 1.15fr .85fr; gap: 12px; }
-  .spotlight { height: clamp(205px,28vw,265px); }
-  .spotlight-caption { right: -3%; bottom: -3%; }
   .hero h1 { font-size: clamp(3.9rem,8.7vw,4.9rem); }
 }
 @media (max-width: 620px) {
   .hero-grid {
-    display:grid; grid-template-columns:minmax(0,1fr) clamp(85px,26vw,132px);
-    grid-template-areas:"title bao" "search search" "origin origin" "pick pick"; gap:10px 8px; padding-block:14px 96px;
+    display:grid; grid-template-columns:minmax(0,1fr);
+    grid-template-areas:"title" "search" "origin" "pick"; gap:10px 8px; padding-block:14px 96px;
   }
   .hero-copy { display:contents; }
   .hero h1 { grid-area:title; margin:0; font-size:clamp(2.55rem,11.9vw,4.6rem); white-space:normal; }
@@ -677,18 +674,12 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
   .origin-switch { display:grid; grid-template-columns:4.4em minmax(0,1fr); gap:8px; }
   .origin-switch-track { flex:1; }
   .origin-switch button { flex:1; justify-content:center; padding-inline:10px; }
-  .spotlight { position:relative; grid-area:bao; width:100%; height:clamp(94px,26vw,124px); z-index:1; }
-  .food-planet { width: 81%; max-width: 110px; }
-  .spotlight-caption { padding:2px 6px; top:auto; bottom:0; right:0; }
-  .caption-dish { display: none; }
-  .caption-place { font-size:var(--fs-xs); }
 }
 @media (max-width: 355px) {
   .search-bundle { gap: 7px; padding-left: 10px; }
   .search-bundle .btn { padding-inline: 10px; }
   .hero-grid { gap:8px 5px; }
   .hero h1 { font-size:2.55rem; }
-  .spotlight-caption { padding-inline:4px; }
 }
 /* Night scene: the real sky is painted on the hero canvas by galaxy-sky.js; here a moon, a few
    meteors, and a pixel landscape (far ridges, a hamlet, the meadow and its bao cart) with fireflies. */
@@ -1195,11 +1186,7 @@ dialog::backdrop { background: #0b0912cc; }
 </head>
 <body>
   <svg id="pixelSymbols" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><!-- Pixel glyphs: home, school and dice from Kenney's 1-Bit Pack (CC0); rice bowl, burger and stars drawn for this app. -->
-<symbol id="px-home" viewBox="0 0 16 16"><path fill="#2b1a3a" d="M7 1h2v1h-2zM12 1h2v1h-2zM6 2h1v1h-1zM9 2h1v1h-1zM12 2h2v1h-2zM5 3h1v1h-1zM10 3h1v1h-1zM12 3h2v1h-2zM4 4h1v1h-1zM11 4h3v1h-3zM3 5h1v1h-1zM12 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM0 8h16v1h-16zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM14 10h1v1h-1zM1 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM14 12h1v1h-1zM1 13h1v1h-1zM14 13h1v1h-1zM1 14h14v1h-14z"/><path fill="#ec5b4f" d="M7 2h2v1h-2zM6 3h4v1h-4zM5 4h6v1h-6zM4 5h8v1h-8zM3 6h10v1h-10z"/><path fill="#b83d3a" d="M2 7h12v1h-12z"/><path fill="#fff2df" d="M2 9h12v1h-12zM2 10h1v1h-1zM5 10h5v1h-5zM13 10h1v1h-1zM2 11h1v1h-1zM5 11h5v1h-5zM13 11h1v1h-1zM2 12h8v1h-8zM13 12h1v1h-1zM2 13h8v1h-8zM13 13h1v1h-1z"/><path fill="#ffd36b" d="M3 10h2v1h-2zM3 11h2v1h-2z"/><path fill="#9a5a3c" d="M10 10h3v1h-3zM10 11h3v1h-3zM10 12h3v1h-3zM10 13h1v1h-1zM12 13h1v1h-1z"/><path fill="#ffd36b" d="M11 13h1v1h-1z"/></symbol>
-<symbol id="px-school" viewBox="0 0 16 16"><path fill="#2b1a3a" d="M7 0h1v1h-1zM7 1h1v1h-1zM7 2h1v1h-1zM6 3h4v1h-4zM4 4h2v1h-2zM10 4h2v1h-2zM2 5h2v1h-2zM12 5h2v1h-2zM0 6h2v1h-2zM14 6h2v1h-2zM0 7h16v1h-16zM1 8h1v1h-1zM14 8h1v1h-1zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM14 10h1v1h-1zM1 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM14 12h1v1h-1zM1 13h1v1h-1zM14 13h1v1h-1zM0 14h16v1h-16z"/><path fill="#ff6b6b" d="M8 0h3v1h-3zM8 1h2v1h-2z"/><path fill="#4f86f7" d="M6 4h4v1h-4zM4 5h8v1h-8z"/><path fill="#2f5fc4" d="M2 6h12v1h-12z"/><path fill="#fff2df" d="M2 8h12v1h-12zM2 9h1v1h-1zM5 9h1v1h-1zM8 9h1v1h-1zM11 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM2 11h5v1h-5zM9 11h5v1h-5zM2 12h1v1h-1zM5 12h2v1h-2zM9 12h2v1h-2zM13 12h1v1h-1zM2 13h1v1h-1zM5 13h2v1h-2zM9 13h2v1h-2zM13 13h1v1h-1z"/><path fill="#ffd36b" d="M3 9h2v1h-2zM6 9h2v1h-2zM9 9h2v1h-2zM12 9h2v1h-2zM3 10h2v1h-2zM6 10h2v1h-2zM9 10h2v1h-2zM12 10h2v1h-2zM3 12h2v1h-2zM11 12h2v1h-2zM3 13h2v1h-2zM11 13h2v1h-2z"/><path fill="#9a5a3c" d="M7 11h2v1h-2zM7 12h2v1h-2zM7 13h2v1h-2z"/><path fill="#a9b0d6" d="M1 15h14v1h-14z"/></symbol>
 <symbol id="px-dice" viewBox="0 0 16 16"><path d="M2 1h12v1h-12zM1 2h2v1h-2zM13 2h2v1h-2zM1 3h1v1h-1zM14 3h1v1h-1zM1 4h1v1h-1zM4 4h2v1h-2zM10 4h2v1h-2zM14 4h1v1h-1zM1 5h1v1h-1zM4 5h2v1h-2zM10 5h2v1h-2zM14 5h1v1h-1zM1 6h1v1h-1zM14 6h1v1h-1zM1 7h1v1h-1zM7 7h2v1h-2zM14 7h1v1h-1zM1 8h1v1h-1zM7 8h2v1h-2zM14 8h1v1h-1zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM4 10h2v1h-2zM10 10h2v1h-2zM14 10h1v1h-1zM1 11h1v1h-1zM4 11h2v1h-2zM10 11h2v1h-2zM14 11h1v1h-1zM1 12h1v1h-1zM14 12h1v1h-1zM1 13h2v1h-2zM13 13h2v1h-2zM2 14h12v1h-12z"/></symbol>
-<symbol id="px-rice" viewBox="0 0 16 16"><path d="M4 1h1v1h-1zM7 1h1v1h-1zM10 1h1v1h-1zM5 2h1v1h-1zM8 2h1v1h-1zM11 2h1v1h-1zM4 3h1v1h-1zM7 3h1v1h-1zM10 3h1v1h-1zM4 5h8v1h-8zM2 6h3v1h-3zM6 6h1v1h-1zM9 6h1v1h-1zM11 6h3v1h-3zM1 7h2v1h-2zM4 7h1v1h-1zM7 7h2v1h-2zM11 7h1v1h-1zM13 7h2v1h-2zM0 8h16v1h-16zM0 9h16v1h-16zM1 10h14v1h-14zM1 11h14v1h-14zM2 12h12v1h-12zM3 13h10v1h-10zM5 14h6v1h-6zM4 15h8v1h-8z"/></symbol>
-<symbol id="px-burger" viewBox="0 0 16 16"><path d="M5 2h6v1h-6zM3 3h10v1h-10zM2 4h3v1h-3zM6 4h4v1h-4zM11 4h3v1h-3zM1 5h14v1h-14zM1 7h14v1h-14zM0 8h1v1h-1zM2 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM14 8h1v1h-1zM1 10h14v1h-14zM1 11h14v1h-14zM1 13h14v1h-14zM2 14h12v1h-12z"/></symbol>
 <symbol id="px-star" viewBox="0 0 13 13"><path fill="#2b1a3a" d="M6 0h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h4v1h-4zM9 4h4v1h-4zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM11 6h1v1h-1zM2 7h1v1h-1zM10 7h1v1h-1zM2 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM11 9h1v1h-1zM1 10h1v1h-1zM5 10h3v1h-3zM11 10h1v1h-1zM0 11h1v1h-1zM3 11h2v1h-2zM8 11h2v1h-2zM12 11h1v1h-1zM0 12h3v1h-3zM10 12h3v1h-3z"/><path fill="#ffd25e" d="M6 1h1v1h-1zM6 2h1v1h-1zM5 3h3v1h-3zM4 4h1v1h-1zM6 4h3v1h-3zM1 5h11v1h-11zM2 6h2v1h-2zM5 6h3v1h-3zM9 6h2v1h-2zM3 7h7v1h-7zM3 8h1v1h-1zM5 8h3v1h-3zM9 8h1v1h-1zM2 9h9v1h-9zM2 10h3v1h-3zM8 10h3v1h-3zM1 11h2v1h-2zM10 11h2v1h-2z"/><path fill="#fff7d1" d="M5 4h1v1h-1z"/><path fill="#2b1a3a" d="M4 6h1v1h-1zM8 6h1v1h-1z"/><path fill="#ff9fb4" d="M4 8h1v1h-1zM8 8h1v1h-1z"/></symbol>
 <symbol id="px-star-empty" viewBox="0 0 13 13"><path fill="#2b1a3a" d="M6 0h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h4v1h-4zM9 4h4v1h-4zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM11 6h1v1h-1zM2 7h1v1h-1zM10 7h1v1h-1zM2 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM11 9h1v1h-1zM1 10h1v1h-1zM5 10h3v1h-3zM11 10h1v1h-1zM0 11h1v1h-1zM3 11h2v1h-2zM8 11h2v1h-2zM12 11h1v1h-1zM0 12h3v1h-3zM10 12h3v1h-3z"/><path fill="#46508f" d="M6 1h1v1h-1zM6 2h1v1h-1zM5 3h3v1h-3zM4 4h1v1h-1zM6 4h3v1h-3zM1 5h11v1h-11zM2 6h2v1h-2zM5 6h3v1h-3zM9 6h2v1h-2zM3 7h7v1h-7zM3 8h1v1h-1zM5 8h3v1h-3zM9 8h1v1h-1zM2 9h9v1h-9zM2 10h3v1h-3zM8 10h3v1h-3zM1 11h2v1h-2zM10 11h2v1h-2z"/><path fill="#5d68ad" d="M5 4h1v1h-1z"/><path fill="#2b1a3a" d="M4 6h1v1h-1zM8 6h1v1h-1z"/><path fill="#46508f" d="M4 8h1v1h-1zM8 8h1v1h-1z"/></symbol>
 <symbol id="px-star-half" viewBox="0 0 13 13"><path fill="#2b1a3a" d="M6 0h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h4v1h-4zM9 4h4v1h-4zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM11 6h1v1h-1zM2 7h1v1h-1zM10 7h1v1h-1zM2 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM11 9h1v1h-1zM1 10h1v1h-1zM5 10h3v1h-3zM11 10h1v1h-1zM0 11h1v1h-1zM3 11h2v1h-2zM8 11h2v1h-2zM12 11h1v1h-1zM0 12h3v1h-3zM10 12h3v1h-3z"/><path fill="#46508f" d="M6 1h1v1h-1zM6 2h1v1h-1zM5 3h3v1h-3zM4 4h1v1h-1zM6 4h3v1h-3zM1 5h11v1h-11zM2 6h2v1h-2zM5 6h3v1h-3zM9 6h2v1h-2zM3 7h7v1h-7zM3 8h1v1h-1zM5 8h3v1h-3zM9 8h1v1h-1zM2 9h9v1h-9zM2 10h3v1h-3zM8 10h3v1h-3zM1 11h2v1h-2zM10 11h2v1h-2z"/><path fill="#5d68ad" d="M5 4h1v1h-1z"/><path fill="#2b1a3a" d="M4 6h1v1h-1zM8 6h1v1h-1z"/><path fill="#46508f" d="M4 8h1v1h-1zM8 8h1v1h-1z"/><svg width="6.5" height="13" viewBox="0 0 6.5 13" overflow="hidden"><path fill="#2b1a3a" d="M6 0h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM0 4h4v1h-4zM9 4h4v1h-4zM0 5h1v1h-1zM12 5h1v1h-1zM1 6h1v1h-1zM11 6h1v1h-1zM2 7h1v1h-1zM10 7h1v1h-1zM2 8h1v1h-1zM10 8h1v1h-1zM1 9h1v1h-1zM11 9h1v1h-1zM1 10h1v1h-1zM5 10h3v1h-3zM11 10h1v1h-1zM0 11h1v1h-1zM3 11h2v1h-2zM8 11h2v1h-2zM12 11h1v1h-1zM0 12h3v1h-3zM10 12h3v1h-3z"/><path fill="#ffd25e" d="M6 1h1v1h-1zM6 2h1v1h-1zM5 3h3v1h-3zM4 4h1v1h-1zM6 4h3v1h-3zM1 5h11v1h-11zM2 6h2v1h-2zM5 6h3v1h-3zM9 6h2v1h-2zM3 7h7v1h-7zM3 8h1v1h-1zM5 8h3v1h-3zM9 8h1v1h-1zM2 9h9v1h-9zM2 10h3v1h-3zM8 10h3v1h-3zM1 11h2v1h-2zM10 11h2v1h-2z"/><path fill="#fff7d1" d="M5 4h1v1h-1z"/><path fill="#2b1a3a" d="M4 6h1v1h-1zM8 6h1v1h-1z"/><path fill="#ff9fb4" d="M4 8h1v1h-1zM8 8h1v1h-1z"/></svg></symbol>
@@ -1254,7 +1241,7 @@ dialog::backdrop { background: #0b0912cc; }
       <div class="sky-stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><span class="shooting-star"></span></div>
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <h1 id="heroTitle"><strong>bebi</strong> <em>ăn gì?</em></h1>
+          <h1 id="heroTitle"><em>ăn gì?</em></h1>
           <form class="search-form" id="searchForm" role="search" autocomplete="off">
             <div class="search-bundle">
               <label class="sr-only" for="search" data-i18n="searchLabel">Tên quán hoặc món</label>
@@ -1268,11 +1255,11 @@ dialog::backdrop { background: #0b0912cc; }
             <span class="origin-switch-label" id="originSwitchLabel"><span lang="vi">Đi bộ từ</span><span lang="en">Walking from</span></span>
             <div class="origin-switch-track">
               <button type="button" data-origin-quick="campus" aria-pressed="true">
-                <svg class="origin-glyph" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use href="#px-school"/></svg>
+                <svg class="origin-glyph px-school" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="#2b1a3a" d="M7 0h1v1h-1zM7 1h1v1h-1zM7 2h1v1h-1zM6 3h4v1h-4zM4 4h2v1h-2zM10 4h2v1h-2zM2 5h2v1h-2zM12 5h2v1h-2zM0 6h2v1h-2zM14 6h2v1h-2zM0 7h16v1h-16zM1 8h1v1h-1zM14 8h1v1h-1zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM14 10h1v1h-1zM1 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM14 12h1v1h-1zM1 13h1v1h-1zM14 13h1v1h-1zM0 14h16v1h-16z"/><path class="flag-a" fill="#ff6b6b" d="M8 0h3v1h-3zM8 1h2v1h-2z"/><path class="flag-b" fill="#ff6b6b" d="M8 0h2v1h-2zM8 1h3v1h-3z"/><path fill="#4f86f7" d="M6 4h4v1h-4zM4 5h8v1h-8z"/><path fill="#2f5fc4" d="M2 6h12v1h-12z"/><path fill="#fff2df" d="M2 8h12v1h-12zM2 9h1v1h-1zM5 9h1v1h-1zM8 9h1v1h-1zM11 9h1v1h-1zM2 10h1v1h-1zM5 10h1v1h-1zM8 10h1v1h-1zM11 10h1v1h-1zM2 11h5v1h-5zM9 11h5v1h-5zM2 12h1v1h-1zM5 12h2v1h-2zM9 12h2v1h-2zM13 12h1v1h-1zM2 13h1v1h-1zM5 13h2v1h-2zM9 13h2v1h-2zM13 13h1v1h-1z"/><path fill="#ffd36b" d="M3 9h2v1h-2zM6 9h2v1h-2zM12 9h2v1h-2zM3 10h2v1h-2zM6 10h2v1h-2zM12 10h2v1h-2zM3 12h2v1h-2zM11 12h2v1h-2zM3 13h2v1h-2zM11 13h2v1h-2z"/><path class="win" fill="#ffd36b" d="M9 9h2v1h-2zM9 10h2v1h-2z"/><path fill="#9a5a3c" d="M7 11h2v1h-2zM7 12h2v1h-2zM7 13h2v1h-2z"/><path fill="#a9b0d6" d="M1 15h14v1h-14z"/></svg>
                 <span><span lang="vi">Trường</span><span lang="en">School</span></span>
               </button>
               <button type="button" data-origin-quick="home" aria-pressed="false">
-                <svg class="origin-glyph" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use href="#px-home"/></svg>
+                <svg class="origin-glyph px-home" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path class="smoke s1" fill="#c9d1ee" d="M12 -1h2v1h-2z"/><path class="smoke s2" fill="#c9d1ee" d="M13 -1h1v1h-1z"/><path fill="#2b1a3a" d="M7 1h2v1h-2zM12 1h2v1h-2zM6 2h1v1h-1zM9 2h1v1h-1zM12 2h2v1h-2zM5 3h1v1h-1zM10 3h1v1h-1zM12 3h2v1h-2zM4 4h1v1h-1zM11 4h3v1h-3zM3 5h1v1h-1zM12 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM0 8h16v1h-16zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h1v1h-1zM14 10h1v1h-1zM1 11h1v1h-1zM14 11h1v1h-1zM1 12h1v1h-1zM14 12h1v1h-1zM1 13h1v1h-1zM14 13h1v1h-1zM1 14h14v1h-14z"/><path fill="#ec5b4f" d="M7 2h2v1h-2zM6 3h4v1h-4zM5 4h6v1h-6zM4 5h8v1h-8zM3 6h10v1h-10z"/><path fill="#b83d3a" d="M2 7h12v1h-12z"/><path fill="#fff2df" d="M2 9h12v1h-12zM2 10h1v1h-1zM5 10h5v1h-5zM13 10h1v1h-1zM2 11h1v1h-1zM5 11h5v1h-5zM13 11h1v1h-1zM2 12h8v1h-8zM13 12h1v1h-1zM2 13h8v1h-8zM13 13h1v1h-1z"/><path class="win" fill="#ffd36b" d="M3 10h2v1h-2zM3 11h2v1h-2z"/><path fill="#9a5a3c" d="M10 10h3v1h-3zM10 11h3v1h-3zM10 12h3v1h-3zM10 13h1v1h-1zM12 13h1v1h-1z"/><path fill="#ffd36b" d="M11 13h1v1h-1z"/></svg>
                 <span><span lang="vi">Nhà</span><span lang="en">Home</span></span>
               </button>
             </div>
@@ -1281,11 +1268,11 @@ dialog::backdrop { background: #0b0912cc; }
             <span class="origin-switch-label" id="riceSwitchLabel"><span lang="vi">Món</span><span lang="en">Dishes</span></span>
             <div class="origin-switch-track">
               <button type="button" data-rice="rice" aria-pressed="false">
-                <svg class="origin-glyph" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use href="#px-rice"/></svg>
+                <svg class="origin-glyph px-rice" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path class="steam-a" fill="#b7c4f2" d="M5 0h1v1h-1zM9 0h1v1h-1zM4 1h1v1h-1zM8 1h1v1h-1zM12 1h1v1h-1zM5 2h1v1h-1zM9 2h1v1h-1zM13 2h1v1h-1zM4 3h1v1h-1zM8 3h1v1h-1zM12 3h1v1h-1z"/><path class="steam-b" fill="#b7c4f2" d="M4 0h1v1h-1zM8 0h1v1h-1zM12 0h1v1h-1zM5 1h1v1h-1zM9 1h1v1h-1zM13 1h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM12 2h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1z"/><path fill="#2b1a3a" d="M5 4h6v1h-6zM3 5h2v1h-2zM12 5h2v1h-2zM2 6h1v1h-1zM14 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM0 8h16v1h-16zM0 9h1v1h-1zM15 9h1v1h-1zM1 10h1v1h-1zM14 10h1v1h-1zM1 11h1v1h-1zM14 11h1v1h-1zM2 12h1v1h-1zM13 12h1v1h-1zM3 13h2v1h-2zM11 13h2v1h-2zM5 14h6v1h-6zM4 15h8v1h-8z"/><path fill="#fffaf2" d="M5 5h3v1h-3zM9 5h3v1h-3zM3 6h2v1h-2zM6 6h5v1h-5zM12 6h2v1h-2zM2 7h5v1h-5zM8 7h6v1h-6z"/><path fill="#e3d6bf" d="M8 5h1v1h-1zM5 6h1v1h-1zM11 6h1v1h-1zM7 7h1v1h-1z"/><path fill="#fff2df" d="M1 9h14v1h-14zM2 11h12v1h-12zM3 12h10v1h-10zM5 13h6v1h-6z"/><path fill="#4f86f7" d="M2 10h12v1h-12z"/></svg>
                 <span><span lang="vi">Có cơm</span><span lang="en">With rice</span></span>
               </button>
               <button type="button" data-rice="norice" aria-pressed="false">
-                <svg class="origin-glyph" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use href="#px-burger"/></svg>
+                <svg class="origin-glyph px-burger" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><g class="bun-top"><path fill="#2b1a3a" d="M5 1h6v1h-6zM3 2h2v1h-2zM11 2h2v1h-2zM2 3h1v1h-1zM14 3h1v1h-1zM1 4h1v1h-1zM14 4h1v1h-1zM1 5h14v1h-14z"/><path fill="#f2a65a" d="M5 2h2v1h-2zM8 2h3v1h-3zM3 3h1v1h-1zM5 3h7v1h-7zM13 3h1v1h-1zM2 4h5v1h-5zM8 4h6v1h-6z"/><path fill="#fff2df" d="M7 2h1v1h-1zM4 3h1v1h-1zM12 3h1v1h-1zM7 4h1v1h-1z"/></g><path fill="#2b1a3a" d="M0 6h1v1h-1zM15 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM1 8h1v1h-1zM14 8h1v1h-1zM1 9h1v1h-1zM14 9h1v1h-1zM1 10h14v1h-14zM1 11h1v1h-1zM14 11h1v1h-1zM2 12h1v1h-1zM13 12h1v1h-1zM3 13h10v1h-10z"/><path fill="#6cc070" d="M1 6h14v1h-14z"/><path fill="#ffd36b" d="M2 7h12v1h-12zM5 8h1v1h-1z"/><path fill="#8a4b33" d="M2 8h3v1h-3zM6 8h8v1h-8zM2 9h12v1h-12z"/><path fill="#f2a65a" d="M2 11h12v1h-12zM3 12h10v1h-10z"/></svg>
                 <span><span lang="vi">Không cơm</span><span lang="en">No rice</span></span>
               </button>
             </div>
@@ -1293,37 +1280,7 @@ dialog::backdrop { background: #0b0912cc; }
           </div>
           <button type="button" class="pick-button" id="randomButton"><svg class="dice-mark" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><use href="#px-dice"/></svg><span data-i18n="surprise">Chọn hộ mình</span><span class="arrow-mark" aria-hidden="true">→</span></button>
         </div>
-        <button type="button" class="spotlight" data-detail="bao-space">
-          <span class="orbit" aria-hidden="true"></span>
-          <svg class="food-planet" viewBox="419 357 267 244" aria-hidden="true" focusable="false">
-            <defs>
-              <clipPath id="bao-outline">
-                <path d="M 536 376 C 539 368 548 364 556 364
-                  Q 569 362 578 366 Q 585 369 588 378
-                  Q 594 381 602 377 Q 611 370 619 378
-                  Q 623 381 626 388 Q 641 394 647 408
-                  Q 662 423 668 445 Q 678 466 679 489
-                  C 682 522 668 548 648 565
-                  C 622 587 587 596 554 595
-                  C 519 595 486 579 462 558
-                  C 439 538 426 511 426 483
-                  Q 425 467 431 455 Q 433 445 438 439
-                  Q 437 430 447 424 Q 449 409 459 407
-                  Q 470 405 479 407 Q 477 395 483 387
-                  Q 489 380 501 385 Q 512 387 518 387
-                  Q 525 381 536 376 Z"/>
-              </clipPath>
-            </defs>
-            <image href="assets/menu-photos/bao-space-bao-dough.webp" x="0" y="0" width="920" height="780"
-                   preserveAspectRatio="none" clip-path="url(#bao-outline)"/>
-          </svg>
-          <span class="orbit-face" aria-hidden="true"></span>
-          <span class="orbit-track" aria-hidden="true"><i class="orbit-dot"></i></span>
-          <span class="spotlight-caption">
-            <span class="caption-dish"><span lang="vi">Bánh bao thủ công</span><span lang="en">Handmade bao</span></span>
-            <span class="caption-place">Bao Space <span aria-hidden="true">↗</span></span>
-          </span>
-        </button>
+        <!-- The right half of the banner is left to the sky, the moon and the castle on the hill. -->
       </div>
     </section>
     <div class="wrap directory">
@@ -2214,6 +2171,18 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       STARS['s' + i] = [ra / 1000, dec / 100, v / 100, tempColor(k * 10)];
     });
   }
+  // The catalogue is J2000; precess it to the date shown (IAU 1976 angles, Meeus ch. 21). By 2026
+  // the equinox has moved about a third of a degree, about a pixel on the banner, but it is real.
+  const POLARIS = Object.keys(STARS).find(id => Math.abs(STARS[id][1] - 89.26) < .05);
+  function precess(star, ms) {
+    const T = (jdOf(ms) - 2451545) / 36525, sec = x => x / 3600 * toRad;
+    const zeta = sec(2306.2181 * T + .30188 * T * T), z = sec(2306.2181 * T + 1.09468 * T * T), th = sec(2004.3109 * T - .42665 * T * T);
+    const ra = star[0] * 15 * toRad + zeta, de = star[1] * toRad;
+    const A = Math.cos(de) * Math.sin(ra), B = Math.cos(th) * Math.cos(de) * Math.cos(ra) - Math.sin(th) * Math.sin(de);
+    const C = Math.sin(th) * Math.cos(de) * Math.cos(ra) + Math.cos(th) * Math.sin(de);
+    return [(((Math.atan2(A, B) + z) / toRad + 360) % 360) / 15, Math.asin(C) / toRad];
+  }
+  for (const star of Object.values(STARS)) [star[0], star[1]] = precess(star, SKY_TIME);
   // Local horizon direction (east, north, up) of every star at SKY_TIME.
   const lst = LST_SKY;
   const HORIZON = Object.fromEntries(Object.entries(STARS).map(([id, star]) => [id, horizonAt(star, lst)]));
@@ -2292,6 +2261,10 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     }
     ctx.globalAlpha = 1;
   }
+  // How bright a star is at this instant of its twinkle. Real scintillation makes a star flicker,
+  // not go out: bright stars may dip to 35% for a beat, faint ones never below 60%, so the faint
+  // stars low in the sky (where the twinkle is strongest) stay on the page instead of vanishing.
+  const twinkleGlow = (mag, amp, wave) => Math.max(mag > 3 ? .6 : mag > 1.5 ? .45 : .35, 1 - amp * wave);
   // A slow, rare glint per star: 0 most of the time, rising to 1 for a moment.
   const glint = (t, s) => calm || s.mag > 2.6 ? 0 : Math.max(0, (Math.sin(t * s.speed * .31 + s.phase * 1.7) - .965) / .035);
 
@@ -2323,7 +2296,7 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (const s of sky.stars) {
       const wave = calm ? .5 : (.5 + .5 * Math.sin(t * s.speed + s.phase)) * (.65 + .35 * Math.sin(t * s.speed * 2.7 + s.phase * 1.3));
-      drawStar(ctx, s.x, s.y, s.mag, s.color, 1 - s.amp * wave, .18, glint(t, s));
+      drawStar(ctx, s.x, s.y, s.mag, s.color, twinkleGlow(s.mag, s.amp, wave), .18, glint(t, s));
     }
     drawPrecip(t);
   }
@@ -2621,14 +2594,15 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
   const north = {width: 0, height: 0, pixel: 3, meteors: [], nextMeteor: 0, start: performance.now()};
   const NORTH_STARS = Object.entries(STARS).filter(([, s]) => s[1] > -25).map(([id, s], i) => ({
     ra: s[0] * 15 * toRad, sd: Math.sin(s[1] * toRad), cd: Math.cos(s[1] * toRad), mag: s[2], color: s[3],
-    polaris: Math.abs(s[1] - 89.26) < .05, speed: .0014 + (i * .618034 % 1) * .004, phase: i * 2.399
+    polaris: id === POLARIS, speed: .0014 + (i * .618034 % 1) * .004, phase: i * 2.399
   }));
   const LEONIDS = {ra: 10.25 * 15 * toRad, sd: Math.sin(22 * toRad), cd: Math.cos(22 * toRad)};
   const LST0 = lst;
   function northView(lstDeg) {
     const W = north.width, H = north.height, phi = LAT * toRad, sp = Math.sin(phi), cp = Math.cos(phi);
     const f = [0, cp, sp], u = [0, -sp, cp];
-    // Polaris (at the latitude's altitude) at 42% down, the horizon at 86%.
+    // Polaris (at the latitude's altitude) at 42% down, the north point of the horizon at 86%
+    // (the horizon itself is not drawn: see drawNorth).
     const cy = H * .42, scale = (H * .86 - cy) / (2 * Math.tan(LAT * toRad / 2)), cx = W / 2, L = lstDeg * toRad;
     return star => {
       const h = L - star.ra, ch = Math.cos(h), sh = Math.sin(h);
@@ -2664,7 +2638,8 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       if (hi <= lo) continue;
       const x = Math.round(lo + (hi - lo) * ((i + .3 + r(1) * .4) / perSide));
       list.push({
-        size, x: side ? W - x : x, y0: r(2) * (H + 40),
+        // Spread evenly up the margin (each side offset by half a step), not bunched at random.
+        size, x: side ? W - x : x, y0: ((i + .3 + r(2) * .4 + side * .5) / perSide) * (H + 40),
         speed: [1.5, 1.05, .62][size] * (.85 + r(3) * .3), sway: [1.6, 1.1, .6][size], phase: r(4) * 6.283,
         depth: [1, .7, .4][size]
       });
@@ -2680,7 +2655,7 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       const y = Math.round(H + 20 - ((l.y0 + sec * l.speed + lift * l.depth) % span + span) % span);
       const x = Math.round(l.x + (calm ? 0 : Math.sin(sec * .45 + l.phase) * l.sway));
       // Fade in just above the bottom edge and out high up, as a lantern climbs away.
-      const fade = Math.max(0, Math.min(1, (H + 8 - y) / (H * .12), y / (H * .35))) * (.55 + .45 * l.depth);
+      const fade = Math.max(0, Math.min(1, (H + 8 - y) / (H * .12), y / (H * .18))) * (.55 + .45 * l.depth);
       if (fade <= 0) continue;
       const shape = LANTERN[l.size], half = Math.floor(shape[0].length / 2);
       const flame = calm || Math.sin(sec * 9 + l.phase * 3) + Math.sin(sec * 23 + l.phase) > -.4;
@@ -2849,13 +2824,16 @@ window.BEBI_STARS = "89,-571,461,500;140,2909,206,1400;153,5915,227,720;156,-279
       ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
     }
     let polaris = null, brightest = null;
+    // The page has no ground, so the sky is shown whole ("ground off", as in a planetarium): stars
+    // below the horizon are drawn too, at their true places. With the horizon cut, the wide-screen
+    // margins lost every star below about 60% of the height, where the horizon arc curves up.
     for (const s of NORTH_STARS) {
       const p = view(s);
-      if (!p || p.up < .02 || p.x < -3 || p.x > W + 3 || p.y < -3 || p.y > H + 3) continue;
+      if (!p || p.x < -3 || p.x > W + 3 || p.y < -3 || p.y > H + 3) continue;
       const wave = calm ? .5 : (.5 + .5 * Math.sin(t * s.speed + s.phase)) * (.65 + .35 * Math.sin(t * s.speed * 2.7 + s.phase * 1.3));
       // Deeper twinkle than the banner: the page background is quiet otherwise, so it carries the motion.
       const amp = Math.min(.85, .4 + .5 * Math.max(0, 1 - Math.asin(p.up) / toRad / 55));
-      drawStar(ctx, Math.round(p.x), Math.round(p.y), s.mag, s.color, (1 - amp * wave) * veil, .32, glint(t, s) * veil);
+      drawStar(ctx, Math.round(p.x), Math.round(p.y), s.mag, s.color, twinkleGlow(s.mag, amp, wave) * veil, .32, glint(t, s) * veil);
       if (s.polaris) polaris = p;
       else if (p.up > .1 && (!brightest || s.mag < brightest.mag)) brightest = {...p, mag: s.mag, color: s.color};
     }
