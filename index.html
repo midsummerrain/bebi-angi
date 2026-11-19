@@ -215,9 +215,13 @@ button, a, select, input, summary { -webkit-tap-highlight-color: transparent; }
 .wrap { width: min(1180px, calc(100% - clamp(32px, 9vw, 128px))); margin-inline: auto; }
 h1, h2, h3, p, figure { margin: 0; }
 h1, h2, h3 { overflow-wrap: break-word; }
-.topbar { border-bottom: 1px solid var(--line); }
+/* The top bar has no bar: the logo and links float over the banner sky, which runs up behind them
+   so whole constellations show. The banner keeps --nav-h of room at its top for them. */
+:root { --nav-h: 67px; }
+.topbar { position: absolute; inset: 0 0 auto; z-index: 3; }
+.hero { padding-top: var(--nav-h); }
 .nav, .nav-right, .lang, .brand { display: flex; align-items: center; }
-.nav { justify-content: space-between; min-height: 67px; gap: 14px; }
+.nav { justify-content: space-between; min-height: var(--nav-h); gap: 14px; }
 .brand { gap: 12px; width: fit-content; min-height: 44px; color: var(--ink); text-decoration: none; font: 700 31px/1.15 var(--display-font); letter-spacing: -.045em; }
 .nav-right { gap: 21px; }
 .nav-link, .lang button, .text-btn, .pick-button, .venue-name, .featured-open { background: transparent; border: 0; padding: 0; }
@@ -345,7 +349,7 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .sky-credit { margin-block: .4rem .8rem; }
 @media (max-width: 620px) {
   .wrap { width: calc(100% - 36px); }
-  .nav { min-height: 57px; }
+  :root { --nav-h: 57px; }
   .nav-right { gap: 8px; }
   .lang { padding-left: 5px; }
   .section-top { flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
@@ -601,7 +605,6 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 .galaxy-bed { position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background:#05070f; }
 .galaxy-bed canvas, .galaxy-hero { display:block; width:100%; height:100%; image-rendering:pixelated; }
 .galaxy-hero { position:absolute; inset:0; z-index:-2; pointer-events:none; }
-.topbar { background-color:#0c112bc9; }
 .result-tools .sort { background-color:var(--panel); }
 .chef-mark { width: 42px; height: 42px; object-fit: contain; flex-shrink: 0; }
 .footer-brand .chef-mark { width: 34px; height: 34px; }
@@ -796,11 +799,12 @@ input[type=range] { width: 100%; min-height: 44px; margin: 0; accent-color: var(
 }
 .star-twinkle { position:absolute; inset:0; z-index:-2; width:100%; height:100%; image-rendering:pixelated; pointer-events:none; }
 /* The name of the constellation the pointer is on, above its top star, as faint as its lines. */
+.sky-figure-lines { position:absolute; inset:0; z-index:-2; width:100%; height:100%; pointer-events:none; }
 .sky-figure-name {
-  position:absolute; z-index:-2; transform:translate(-50%, calc(-100% - 12px)); opacity:0; pointer-events:none;
-  color:#dfe6ff; font:600 13px/1.2 var(--body-font); letter-spacing:.03em; text-align:center; white-space:nowrap;
+  position:absolute; z-index:-2; transform:translate(-50%, calc(-100% - 10px)); opacity:0; pointer-events:none;
+  color:#dbe3ff; font:500 12px/1 var(--display-font); letter-spacing:.18em; text-transform:uppercase; white-space:nowrap;
 }
-.sky-figure-name small { display:block; margin-top:1px; font-size:10.5px; font-weight:400; opacity:.72; letter-spacing:.06em; }
+.sky-figure-name.is-below { transform:translate(-50%, 10px); }
 /* Weather: rain, snow, wind gusts, valley fog and lightning follow the live conditions; the stars
    are never dimmed. */
 .weather-clouds, .weather-clouds-high { position:absolute; top:0; left:0; width:200%; height:100%; image-rendering:pixelated; }
@@ -1677,6 +1681,11 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     sky.moonAt = {x: p.x, y: p.y};
   }
 
+  // How much light a star gets follows its magnitude smoothly, with no steps: the eye answers about
+  // flux^0.4, so each magnitude fainter is 0.69x as bright (magnitude 5.5 gets 0.275, magnitude 2
+  // gets 1). Brighter than that, the extra light spills into a small cross and halo a little more
+  // steeply (flux^0.5), so Sirius, Vega and Capella stand out without swamping the sky.
+  const starLight = mag => .275 * Math.pow(10, .16 * (5.5 - Math.max(mag, 1.5)) + .2 * Math.max(0, 1.5 - mag));
   // `lift` raises the faint stars toward full strength; `flare` (0 to 1) is a brief glint: a little
   // pixel cross that flashes on a bright star now and then, the way a real star flickers.
   function drawStar(ctx, x, y, mag, color, glow = 1, lift = 0, flare = 0) {
@@ -1688,22 +1697,16 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
         for (const [dx, dy] of [[k, 0], [-k, 0], [0, k], [0, -k]]) dot(dx, dy, a);
       }
     }
-    if (mag < .5) {
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) dot(dx, dy, .95);
-      for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) dot(dx, dy, .45);
-      for (const [dx, dy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) dot(dx, dy, .22);
-      dot(0, 0, 1, '#ffffff');
-    } else if (mag < 1.5) {
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) dot(dx, dy, .62);
-      dot(0, 0, 1, '#ffffff');
-      dot(0, 0, .35);
-    } else if (mag < 2.5) {
-      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) dot(dx, dy, .3);
-      dot(0, 0, 1);
-    } else {
-      const base = mag < 3.5 ? .95 : mag < 4.2 ? .7 : mag < 4.8 ? .5 : .34;
-      dot(0, 0, base + lift * (1 - base));
+    const light = starLight(mag), core = Math.min(1, light), spill = Math.max(0, light - 1);
+    if (spill > 0) {
+      const arm = Math.min(.95, spill * .75 / 4), far = Math.min(.45, spill * .2 / 4), diag = Math.min(.25, spill * .05 / 4);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) dot(dx, dy, arm);
+      if (far > .02) for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) dot(dx, dy, far);
+      if (diag > .02) for (const [dx, dy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) dot(dx, dy, diag);
     }
+    // The brightest stars burn white at the centre, their colour showing in the cross around it.
+    if (mag < 1.5) { dot(0, 0, 1, '#ffffff'); dot(0, 0, .35); }
+    else dot(0, 0, core + lift * (1 - core));
     ctx.globalAlpha = 1;
   }
   // How bright a star is at this instant of its twinkle. Real scintillation makes a star flicker,
@@ -1734,9 +1737,9 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   const sky = {stars: [], width: 0, height: 0, pixel: 3, drops: [], weather: null, running: true};
   const calm = !(window.matchMedia && matchMedia('(prefers-reduced-motion: no-preference)').matches);
 
-  // Constellation lines: the figures on screen in canvas pixels (set in paint), the one the pointer
-  // is near, and how far it has faded in. Lines are faint and stop short of each star.
-  const figure = {list: [], shown: null, alpha: 0, want: false, until: 0, label: null, lang: ''};
+  // Constellation lines: the figures on screen in sky-canvas pixels (set in paint), the one the
+  // pointer is near, and how far it has faded in. Lines are faint hairlines that stop short of each star.
+  const figure = {list: [], shown: null, alpha: 0, want: false, until: 0, canvas: null, label: null, inked: false};
   function layoutFigures(points, w, h) {
     const floor = h - HORIZON_UP;
     return FIGURES.map(names => {
@@ -1765,50 +1768,72 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     }
     return best;
   }
+  // The lines and the name sit on their own layers just above the stars: a full-resolution canvas
+  // (hairlines, not pixel blocks) and a small upper-case English name in the display font.
+  function figureLayers() {
+    if (figure.canvas) return true;
+    const stars = document.getElementById('starTwinkle');
+    if (!stars) return false;
+    figure.canvas = Object.assign(document.createElement('canvas'), {className: 'sky-figure-lines'});
+    figure.label = Object.assign(document.createElement('div'), {className: 'sky-figure-name'});
+    figure.canvas.setAttribute('aria-hidden', 'true');
+    figure.label.setAttribute('aria-hidden', 'true');
+    stars.after(figure.canvas, figure.label);
+    return true;
+  }
   function labelFigure(fig) {
-    let el = figure.label;
-    if (!el) {
-      el = figure.label = document.createElement('div');
-      el.className = 'sky-figure-name';
-      el.setAttribute('aria-hidden', 'true');
-      document.getElementById('starTwinkle')?.after(el);
-    }
-    const vi = document.documentElement.lang === 'vi';
-    el.innerHTML = vi ? `${fig.names.vi}<small>${fig.names.en}</small>` : fig.names.en;
-    figure.lang = document.documentElement.lang;
-    const top = Math.min(...fig.pts.map(p => p[1])), mid = fig.pts.reduce((sum, p) => sum + p[0], 0) / fig.pts.length;
-    const width = sky.width * sky.pixel;
-    el.style.left = Math.round(Math.max(48, Math.min(width - 48, mid * sky.pixel))) + 'px';
-    el.style.top = Math.round(Math.max(40, top * sky.pixel)) + 'px';
+    if (!figureLayers()) return;
+    figure.label.textContent = fig.names.en;
+    const ys = fig.pts.map(p => p[1]), mid = fig.pts.reduce((sum, p) => sum + p[0], 0) / fig.pts.length;
+    const width = sky.width * sky.pixel, nav = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 67;
+    // Above the figure's top star, or under its lowest one when the top is up among the logo and links.
+    const below = Math.min(...ys) * sky.pixel - 28 < nav;
+    figure.label.classList.toggle('is-below', below);
+    figure.label.style.left = Math.round(Math.max(60, Math.min(width - 60, (mid + .5) * sky.pixel))) + 'px';
+    figure.label.style.top = Math.round((below ? Math.max(...ys) + 1 : Math.min(...ys)) * sky.pixel) + 'px';
   }
   // A mouse shows the nearest figure while it is there; a tap shows it for a few seconds.
   function showFigure(fig, until = 0) {
     if (!fig && figure.until > performance.now()) return;
-    if (fig && (fig !== figure.shown || figure.lang !== document.documentElement.lang)) {
-      if (fig !== figure.shown) figure.alpha = 0;
+    if (fig && fig !== figure.shown) {
+      figure.alpha = 0;
       figure.shown = fig;
       labelFigure(fig);
     }
     figure.want = !!fig;
     figure.until = until;
   }
-  function drawFigure(ctx, t) {
+  function drawFigure(t) {
     if (figure.until && t > figure.until) { figure.until = 0; figure.want = false; }
     const goal = figure.want ? 1 : 0;
     figure.alpha = calm ? goal : figure.alpha + (goal - figure.alpha) * .3;
-    if (figure.label) figure.label.style.opacity = figure.alpha > .02 ? figure.alpha.toFixed(2) : '0';
-    if (figure.alpha < .02 || !figure.shown) return;
-    ctx.globalAlpha = .42 * figure.alpha;
-    ctx.fillStyle = '#c4d2ff';
-    for (const [[x0, y0], [x1, y1]] of figure.shown.segs) {
-      const steps = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1;
-      for (let i = 0; i <= steps; i++) {
-        const x = Math.round(x0 + (x1 - x0) * i / steps), y = Math.round(y0 + (y1 - y0) * i / steps);
-        if (Math.hypot(x - x0, y - y0) < 2.5 || Math.hypot(x - x1, y - y1) < 2.5) continue;
-        ctx.fillRect(x, y, 1, 1);
-      }
+    if (!figure.canvas) return;
+    const c = figure.canvas, ctx = c.getContext('2d'), on = figure.alpha > .02 && figure.shown;
+    figure.label.style.opacity = on ? (.8 * figure.alpha).toFixed(2) : '0';
+    if (!on) {
+      if (figure.inked) { ctx.clearRect(0, 0, c.width, c.height); figure.inked = false; }
+      return;
     }
+    const dpr = Math.min(2, window.devicePixelRatio || 1), w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
+    if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+    ctx.clearRect(0, 0, w, h);
+    ctx.globalAlpha = .26 * figure.alpha;
+    ctx.strokeStyle = '#dbe3ff';
+    ctx.lineWidth = dpr * .8;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    // Each line runs between star centres (css pixels) and stops 5 px short of both stars.
+    const k = sky.pixel * dpr, gap = 5 * dpr;
+    for (const [[x0, y0], [x1, y1]] of figure.shown.segs) {
+      const ax = (x0 + .5) * k, ay = (y0 + .5) * k, bx = (x1 + .5) * k, by = (y1 + .5) * k, len = Math.hypot(bx - ax, by - ay);
+      if (len <= gap * 2.5) continue;
+      const ux = (bx - ax) / len * gap, uy = (by - ay) / len * gap;
+      ctx.moveTo(ax + ux, ay + uy);
+      ctx.lineTo(bx - ux, by - uy);
+    }
+    ctx.stroke();
     ctx.globalAlpha = 1;
+    figure.inked = true;
   }
 
   function drawSky(t) {
@@ -1816,7 +1841,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     const ctx = canvas && canvas.getContext('2d');
     if (!ctx || !sky.width) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawFigure(ctx, t);
+    drawFigure(t);
     for (const s of sky.stars) {
       const wave = calm ? .5 : (.5 + .5 * Math.sin(t * s.speed + s.phase)) * (.65 + .35 * Math.sin(t * s.speed * 2.7 + s.phase * 1.3));
       drawStar(ctx, s.x, s.y, s.mag, s.color, twinkleGlow(s.mag, s.amp, wave), .18, glint(t, s));
