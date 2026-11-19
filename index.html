@@ -1560,11 +1560,13 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
     };
   }
 
-  // The hero shows the real sky over Ann Arbor (42.28 N, 83.74 W) right now, turning with the clock.
+  // The hero shows the real sky as seen from Home in Ann Arbor right now, turning with the clock.
   // Stars come from the Yale catalogue (star-catalog.js); the Moon is put at its real place, phase
   // and tilt for the same moment, and the view first faces it when it is up (south east, where the
   // winter stars rise, when it is not).
-  const LAT = 42.2808, LON = -83.7430, toRad = Math.PI / 180;
+  // Where the sky is watched from: Ann Arbor's centre until the page knows Home (see watchFromHome).
+  let LAT = 42.2808, LON = -83.7430;
+  const toRad = Math.PI / 180;
   const jdOf = ms => ms / 86400000 + 2440587.5;
   const lstAt = ms => (((280.46061837 + 360.98564736629 * (jdOf(ms) - 2451545) + LON) % 360) + 360) % 360;
   function eclToEq(lam, bet) {
@@ -1685,27 +1687,27 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   // Horizon height in canvas pixels: the tops of the far pixel ridges (about 110 css px on a desktop,
   // 74 on a phone, which is 37 canvas pixels either way), so the hills hide only the last few degrees.
   const HORIZON_UP = 37;
-  // A panorama (Mercator, a conformal cylindrical projection) round the horizon: the horizon is the
-  // straight line of the painted ridges at every azimuth, so a star 11 degrees up sits 11 degrees
-  // above the hills wherever it is (a stereographic view curved the horizon up the sides and left
-  // low stars floating at the edges). Shapes stay true; things high up are drawn larger by
-  // 1/cos(altitude), as in a panorama photo. Azimuth runs left to right at SKY_ZOOM css pixels per
-  // radian (a narrow window shows less sky at the same size), never more than the full circle.
-  // viewAz is where the middle of the banner faces (dragging turns it); viewAlt tilts the view up
-  // from 38 degrees (only the arrows do this), sliding the horizon down behind the hills.
-  // SKY_TOP is the logo bar's height over the banner (set in paint).
-  const BASE_ALT = 38, TOP_TILT = 86, SKY_ZOOM = 380;
+  // The sky as a dome seen from Home: a stereographic projection (shapes stay true) centred on viewAz
+  // at viewAlt, so the horizon curves away round the sides like a real wide view. It is scaled so the
+  // horizon meets the ridges in the middle and TOP_ALT sits SKY_TOP canvas pixels down (the logo bar's
+  // height, set in paint), at least SKY_ZOOM css pixels per radian (a narrow window shows less sky
+  // instead of squeezing it), a wide screen spanning at most 180 degrees. Anything below the horizon
+  // has set and is not drawn. Dragging turns viewAz; the arrows tilt viewAlt up from 38 degrees.
+  const BASE_ALT = 38, TOP_TILT = 86, TOP_ALT = 84, SKY_ZOOM = 380;
   let SKY_TOP = 0, viewAz = VIEW_AZ, viewAlt = BASE_ALT, projectorScale = 100;
-  const mercator = alt => Math.log(Math.tan(Math.PI / 4 + Math.max(-89, Math.min(89, alt)) * toRad / 2));
   function projector(width, height) {
-    const horizonY = height - HORIZON_UP, az0 = viewAz * toRad, cx = width * .5;
-    const scale = Math.max(width / (2 * Math.PI), SKY_ZOOM / (sky.pixel || 3));
-    const lift = scale * (mercator(viewAlt) - mercator(BASE_ALT));
-    projectorScale = scale;   // canvas pixels per radian of azimuth
+    const alt0 = viewAlt * toRad, az0 = viewAz * toRad, base = BASE_ALT * toRad;
+    const f = [Math.sin(az0) * Math.cos(alt0), Math.cos(az0) * Math.cos(alt0), Math.sin(alt0)];
+    const r = [Math.cos(az0), -Math.sin(az0), 0];
+    const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+    const below = 2 * Math.tan(base / 2), above = 2 * Math.tan((TOP_ALT - BASE_ALT) * toRad / 2), horizonY = height - HORIZON_UP;
+    const scale = Math.max((horizonY - SKY_TOP) / (below + above), width / 4, SKY_ZOOM / (sky.pixel || 3));
+    projectorScale = scale;   // canvas pixels per radian near the middle of the view
+    const cx = width * .5, cy = horizonY - below * scale;
     return v => {
-      const alt = Math.asin(Math.max(-1, Math.min(1, v[2]))) / toRad;
-      const turn = Math.atan2(v[0], v[1]) - az0, daz = ((turn + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
-      return {x: cx + scale * daz, y: horizonY + lift - scale * mercator(alt), alt};
+      const d = 1 + v[0] * f[0] + v[1] * f[1] + v[2] * f[2];
+      if (d < .05) return null;
+      return {x: cx + scale * 2 * (v[0] * r[0] + v[1] * r[1] + v[2] * r[2]) / d, y: cy - scale * 2 * (v[0] * u[0] + v[1] * u[1] + v[2] * u[2]) / d, alt: Math.asin(v[2]) / toRad};
     };
   }
   function project(width, height) {
@@ -1804,7 +1806,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
       for (const line of names.lines) for (let i = 1; i < line.length; i++) {
         // Only between stars the banner draws (more than 2 degrees up), so every line meets a star.
         const a = points['s' + line[i - 1]], b = points['s' + line[i]];
-        // A line across the seam behind the viewer (the two ends half a panorama apart) is skipped.
+        // A line to a star far round the side (projected half a turn away) is skipped.
         if (!a || !b || a.alt <= 2 || b.alt <= 2 || Math.abs(a.x - b.x) > projectorScale * Math.PI) continue;
         const p = [Math.round(a.x), Math.round(a.y)], q = [Math.round(b.x), Math.round(b.y)];
         segs.push([p, q]);
@@ -2265,7 +2267,7 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
         try { scene.setPointerCapture(e.pointerId); } catch (_) { /* already released */ }
       }
       // One css pixel of drag is one pixel of sky near the middle of the view.
-      viewAz = ((skyDrag.az - dx / (projectorScale * sky.pixel) / toRad) % 360 + 360) % 360;
+      viewAz = ((skyDrag.az - dx / (projectorScale * sky.pixel) / toRad / Math.cos(viewAlt * toRad)) % 360 + 360) % 360;
       if (!skyDrag.frame) skyDrag.frame = requestAnimationFrame(turnHero);
     });
     const end = () => {
@@ -2321,6 +2323,19 @@ window.BEBI_FIGURES = [{"vi":"Tiên Nữ","en":"Andromeda","lines":[[189,104,48,
   };
   setInterval(tick, 5000);
   document.addEventListener('visibilitychange', tick);
+  // Watch from Home: the Home point the page uses (the one saved on this device, or the default),
+  // read once the page has started and again whenever Home is changed or cleared. Over Ann Arbor
+  // this moves the stars by hundredths of a degree, but it is the sky as seen from the doorstep.
+  function watchFromHome(point) {
+    const home = point || window.BebiOriginPicker?.getHome?.();
+    if (!home || !Number.isFinite(home.lat) || !Number.isFinite(home.lng)) return;
+    if (Math.abs(home.lat) > 90 || Math.abs(home.lng) > 180 || (home.lat === LAT && home.lng === LON)) return;
+    LAT = home.lat; LON = home.lng;
+    tick();
+  }
+  document.addEventListener('DOMContentLoaded', () => watchFromHome());
+  document.addEventListener('bebi:origin-change', e => { if (e.detail?.key === 'home') watchFromHome(e.detail.point); });
+  document.addEventListener('bebi:home-forgotten', () => setTimeout(() => watchFromHome(), 0));
 
   function paint(canvas, isHero) {
     const rect = canvas.getBoundingClientRect();
